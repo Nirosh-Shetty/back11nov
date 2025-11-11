@@ -73,7 +73,7 @@ const CoinBalance = ({ wallet, transactions, expiryDays, setExpiryDays, setShow 
 
       </div> */}
 
-        <div className="coin-balance-card mb-3">
+        <div className="coin-balance-card mb-3 mt-3">
 
           <p className="coin-balance-text">🎉 <b>₹{wallet?.balance}</b> is waiting in your wallet, but only for {expiryDays === 0 ? "today" : `${expiryDays} more days`}. Hurry up and dig in!</p>
           <RxCross2 onClick={() => setShow(false)} className="coin-balance-text-icon" />

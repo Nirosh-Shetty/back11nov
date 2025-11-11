@@ -1,143 +1,219 @@
 import { useState } from 'react';
 import { Drawer } from 'antd';
 import moment from 'moment';
-import { FaAngleUp, FaAngleDown, FaTimes } from 'react-icons/fa';
+import { FaAngleUp, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import "../Styles/MultiCartDrawer.css";
 
-const MultiCartDrawer = ({ 
-    groupedCarts, 
-    overallSubtotal, 
-    overallTotalItems, 
+const MultiCartDrawer = ({
+    groupedCarts,
+    overallSubtotal,
+    overallTotalItems,
     onJumpToSlot // Function to set selectedDate/Session in Home.jsx
 }) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const addresstype = localStorage.getItem("addresstype");
+    const address = JSON.parse(
+        localStorage.getItem(
+            addresstype === "apartment" ? "address" : "coporateaddress"
+        )
+    );
+
     const navigate = useNavigate();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-    // Helper to format date for display (e.g., "Today")
     const formatSlotDate = (date) => {
         const today = moment().startOf('day');
         const tomorrow = moment().add(1, 'days').startOf('day');
         const dateMoment = moment(date).startOf('day');
-        
-        if (dateMoment.isSame(today)) {
-            return "Today";
-        }
-        if (dateMoment.isSame(tomorrow)) {
-            return "Tomorrow";
-        }
-        return moment(date).format('MMM D'); // e.g., Nov 8
+        if (dateMoment.isSame(today)) return "Today";
+        if (dateMoment.isSame(tomorrow)) return "Tomorrow";
+        return moment(date).format('MMM D');
     };
 
-    // Action when the user clicks 'Details' in the drawer
     const handleSlotDetailClick = (slot) => {
-        // 1. Call the function passed from Home.jsx to update selectedDate/Session
-        // IMPORTANT: The Home component doesn't explicitly pass deliveryDate/session info, 
-        // but we'll assume the 'slot' object provides the necessary info to switch context.
-        onJumpToSlot(slot.date, slot.session); 
-        // console.log("Jumping to slot:", slot.date, slot.session);
-        // 2. Close the drawer
-        setIsDrawerOpen(false); 
+        onJumpToSlot(slot.date, slot.session);
+        setIsDrawerOpen(false);
     };
-    
-    // Action for the 'Proceed to Checkout' button
+
     const handleCheckout = () => {
         setIsDrawerOpen(false);
-        navigate("/checkout"); // Assuming this triggers the logic in Home to validate/checkout
+        navigate("/checkout");
     };
-    
-    // Safety check: Only render the floating bar if there are items
+
     if (overallTotalItems === 0) {
         return null;
     }
 
     return (
         <>
-            {/* 1. BOTTOM BAR (Always visible) - Trigger to open the drawer */}
-            <div className="cartbutton-manager" onClick={() => setIsDrawerOpen(true)}>
-                <div className="cartbtn">
-                    <div className="d-flex justify-content-around align-items-center w-100">
-                        <div className="d-flex gap-1 align-items-center">
-                            <p className="cart-slot-type">
-                                {groupedCarts.length} {groupedCarts.length > 1 ? 'SLOTS' : 'SLOT'}
-                            </p>
-                            <div className="cart-items-price">
-                                {overallTotalItems} items | ₹{overallSubtotal.toFixed(0)}
+            {/* small "All Slots" bubble above closed bar */}
+            {isDrawerOpen || <>
+                <div className="all-slots-bubble" onClick={() => setIsDrawerOpen(true)}>
+                    All Slots
+                    <span className="all-slots-triangle" />
+                </div>
+
+                <div className="cartbutton">
+                    <div className="cartbtn">
+                        <div className="d-flex justify-content-around align-items-center">
+                            <div className="d-flex gap-1 align-items-center">
+                                {/* <p className="cart-slot-type">{SloteType}</p> */}
+                                <div className="cart-items-price">
+                                    {overallTotalItems} items | ₹{overallSubtotal.toFixed(0)}
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div className="d-flex gap-1 align-content-center viewcartbtn-trigger">
-                            <div className="my-meal-icon">
-                                <FaAngleUp size={20} color="white" /> 
-                            </div>
-                            <div className="my-meal-text">View All Meals</div>
+                            {user ? (
+                                <a
+                                    onClick={() => {
+                                        if (!(user && !address)) {
+                                            handleCheckout();
+                                        }
+                                    }}
+                                    style={{
+                                        color: "unset",
+                                        textDecoration: "none",
+                                        opacity: user && !address ? 0.5 : 1,
+                                        pointerEvents: user && !address ? "none" : "auto",
+                                    }}
+                                >
+                                    <div className="d-flex gap-1 align-content-center ">
+                                        <div className="my-meal-icon">
+                                            <img src="" alt="" />
+                                            <div className="red-icon"></div>
+                                        </div>
+
+                                        <div className="my-meal-text">My Meal</div>
+                                    </div>
+                                </a>
+                            ) : (
+                                <div
+                                    className="d-flex gap-2 viewcartbtn"
+                                    onClick={() => {
+                                        const address =
+                                            addresstype == "apartment"
+                                                ? JSON.parse(localStorage.getItem("address"))
+                                                : JSON.parse(localStorage.getItem("coporateaddress"));
+                                        if (!address) {
+                                            Swal2.fire({
+                                                toast: true,
+                                                position: "bottom",
+                                                icon: "info",
+                                                title: `Please sign in to your account`,
+                                                showConfirmButton: false,
+                                                timer: 3000,
+                                                timerProgressBar: true,
+                                                customClass: {
+                                                    popup: "me-small-toast",
+                                                    title: "me-small-toast-title",
+                                                },
+                                            });
+                                            // return;
+                                        }
+                                        navigate("/", { replace: true });
+                                    }}
+                                >
+                                    <div className="my-meal-icon">
+                                        <img src={MyMeal} alt="My Meal" />
+                                        <div className="red-icon"></div>
+                                    </div>
+
+                                    <div className="my-meal-text">My Meal</div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
-            </div>
+                {/* Glass bottom floating bar (closed state) */}
+                {/* <div className="cartbutton-manager">
+                    <div className="green-pill cartbtn">
+                        <div className="left-badge">
+                            <span className="items-count">{overallTotalItems} items</span>
+                            <span className="divider">|</span>
+                            <span className="items-price">₹{overallSubtotal.toFixed(0)}</span>
+                        </div>
 
-            {/* 2. DRAWER (Expanded View) */}
+                        <div className="right-action">
+                            <div className="icon-wrap">
+                                <img src="/assets/mydishes.svg" alt="MyDishes" /> 
+                                <span className="red-dot" />
+                            </div>
+                            <div className="pill-text">My Dishes</div>
+                        </div>
+                    </div>
+            </div> */}
+            </>
+            }
+
+            {/* Expanded drawer */}
             <Drawer
                 placement="bottom"
                 closable={false}
                 onClose={() => setIsDrawerOpen(false)}
                 open={isDrawerOpen}
-                height={Math.min(500, groupedCarts.length * 80 + 150)} 
+                height={Math.min(700, groupedCarts.length * 92 + 170)}
                 className="multi-cart-drawer"
             >
-                {/* Close Handle at the top */}
-                <div className="close-handle-bar" onClick={() => setIsDrawerOpen(false)}>
-                    <FaTimes size={20} color="#777" />
+                {/* center close circle overlapping */}
+                <div className="center-close-circle" onClick={() => setIsDrawerOpen(false)}>
+                    <FaTimes size={18} color="#fff" />
                 </div>
-                
-                {/* Header with Title and Item Count */}
-                <div className="multi-cart-header">
-                    <h3>Your Meals</h3>
-                    <span className="total-items-header">
-                        {overallTotalItems} {overallTotalItems === 1 ? 'Item' : 'Items'}
-                    </span>
-                </div>
-
-                {/* Slot List Container */}
-                <div className="slot-list-container">
-                    {groupedCarts.map((slot, index) => (
-                        <div key={index} className="cart-slot-item-summary">
-                            <div className="slot-title-details">
-                                <div className="slot-session-date">
-                                    <span className="session-name">{slot.session}</span>
-                                    <span className="date-name">- {formatSlotDate(slot.date)}</span>
-                                </div>
-                                <span className="item-count-small">
-                                    {slot.totalItems} {slot.totalItems > 1 ? 'items' : 'item'}
-                                </span>
-                            </div>
-
-                            <div className="slot-summary-actions">
-                                <span className="slot-price">₹{slot.subtotal.toFixed(0)}</span>
-                                <button 
-                                    className="slot-view-btn btn btn-sm btn-primary"
-                                    onClick={() => handleSlotDetailClick(slot)}
-                                >
-                                    Details
-                                </button>
-                            </div>
+                <div className=" multi-cart-drawer-content">
+                    <div className="multi-cart-header">
+                        {/* <h3>Your Meals</h3> */}
+                        <div className="checkout-top" onClick={handleCheckout}>
+                            Checkout All →
                         </div>
-                    ))}
-                </div>
-
-                {/* Footer Summary & Checkout Button */}
-                <div className="multi-cart-footer-summary">
-                    <div className="summary-row">
-                        <span className="summary-label">Total for All Slots</span>
-                        <span className="summary-price">₹{overallSubtotal.toFixed(0)}</span>
                     </div>
-                    
-                    <button 
-                        className="btn btn-success btn-lg checkout-btn w-100 mt-2"
-                        onClick={handleCheckout}
-                    >
-                        Proceed to Checkout
-                    </button>
+
+                    <div className="slot-list-container">
+
+
+
+                        {groupedCarts.map((slot, index) => (
+                            <div className="cartbutton">
+                                <div className="mc-cartbtn">
+                                    <div className="d-flex justify-content-around align-items-center gap-2">
+                                        <div className="d-flex gap-1 align-items-center">
+                                            {/* <p className="cart-slot-type">{SloteType}</p> */}
+                                            <div className="cart-items-price">
+                                                {slot.totalItems} items | ₹{slot.subtotal.toFixed(0)}
+                                            </div>
+                                        </div>
+                                        <div className="slot-title-details">
+                                            <div className="slot-session-date">
+                                                <span className="session-name">{slot.session}</span>
+                                                <span className="date-name">- {formatSlotDate(slot.date)}</span>
+                                            </div>
+                                            {/* <span className="item-count-small">
+                                        {slot.items?.length || 0} products
+                                    </span> */}
+                                        </div>
+                                        <a
+                                            onClick={() => {
+                                                handleSlotDetailClick(slot)
+                                            }}
+                                            style={{
+                                                color: "unset",
+                                                textDecoration: "none",
+                                                // opacity: user && !address ? 0.5 : 1,
+                                                // pointerEvents: user && !address ? "none" : "auto",
+                                            }}
+                                        >
+                                            <div className="d-flex gap-1 align-content-center ">
+                                                <div className="my-meal-icon">
+                                                    <img src="" alt="" />
+                                                    {/* <div className="red-icon"></div> */}
+                                                </div>
+
+                                                <div className="my-meal-text">Details</div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </Drawer>
         </>

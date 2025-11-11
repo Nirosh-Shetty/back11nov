@@ -1,41 +1,42 @@
-import { useContext, useEffect, useMemo, useState } from "react";
-import { Container } from "react-bootstrap";
-import { FaEye, FaEyeSlash, FaLock, FaUser, FaAngleUp } from "react-icons/fa";
-import { Button, Form, InputGroup, Modal } from "react-bootstrap";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Card, Carousel, Container } from "react-bootstrap";
+import { FaEye, FaEyeSlash, FaLock, FaUser } from "react-icons/fa";
+import { Button, Dropdown, Form, InputGroup, Modal } from "react-bootstrap";
 import { FaPlus, FaMinus, FaSquareWhatsapp } from "react-icons/fa6";
 import "../Styles/Home.css";
 import Banner from "./Banner";
 import { useNavigate } from "react-router-dom";
-// import { BsCart3 } from "react-icons/bs";
-// import { HiMiniShoppingBag } from "react-icons/hi2";
+import { BsCart3 } from "react-icons/bs";
+import { HiMiniShoppingBag } from "react-icons/hi2";
 import axios from "axios";
-// import { MdArrowBackIosNew } from "react-icons/md";
+import { MdArrowBackIosNew } from "react-icons/md";
 import { Drawer } from "antd";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import Autocomplete from "@mui/material/Autocomplete";
-// import TextField from "@mui/material/TextField";
-// import ApartmentIcon from "@mui/icons-material/Apartment";
+import Autocomplete from "@mui/material/Autocomplete";
+import TextField from "@mui/material/TextField";
+import ApartmentIcon from "@mui/icons-material/Apartment";
 import swal from "sweetalert";
 import CoinBalance from "./CoinBalance";
-// import Lottie from "lottie-react";
-// import partybomb from "./../assets/Animation - 1741012219735.json";
+import Lottie from "lottie-react";
+import partybomb from "./../assets/Animation - 1741012219735.json";
 import { WalletContext } from "../WalletContext";
 import RatingModal from "./RatingModal";
 import { BiSolidOffer } from "react-icons/bi";
 import Swal2 from "sweetalert2";
-// import ValidateCart from "./ValidateCart";
+import ValidateCart from "./ValidateCart";
 import moment from "moment";
 import MyMeal from "../assets/mymeal.svg";
 import IsVeg from "../assets/isVeg=yes.svg";
 import IsNonVeg from "../assets/isVeg=no.svg";
-import MultiCartDrawer from "./MultiCartDrawer";
-import DateSessionSelector from "./DateSessionSelector";
+
 
 const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   const navigate = useNavigate();
   const { wallet, transactions, loading, walletSeting, getorderByCustomerId } =
     useContext(WalletContext);
+
+  // console.log("wallet wallet", wallet);
 
   const [loader, setloader] = useState(false);
 
@@ -46,87 +47,6 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
       addresstype === "apartment" ? "address" : "coporateaddress"
     )
   );
-
-  const getNormalizedToday = () => {
-    const today = new Date();
-    return new Date(
-      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate())
-    );
-  };
-  const [selectedDate, setSelectedDate] = useState(getNormalizedToday());
-  const [selectedSession, setSelectedSession] = useState("Lunch");
-  const [allHubMenuData, setAllHubMenuData] = useState([]);
-  const [menuItems, setMenuItems] = useState([]);
-  // const [isMultiCartOpen, setIsMultiCartOpen] = useState(false);
-  console.log("menuItems", menuItems);
-  const handleSelectionChange = (date1, session1) => {
-    console.log("Selection changed:", date1, session1);
-    setSelectedDate(date1);
-    setSelectedSession(session1);
-    window.scrollTo(0, 0);
-  };
-
-  // ++ 4. EFFECT 1: FETCH ALL MENU DATA ON LOCATION CHANGE ++
-  useEffect(() => {
-    if (!address || !address.hubId) {
-      setAllHubMenuData([]);
-      setMenuItems([]);
-      setloader(false);
-      return;
-    }
-
-    const fetchAllMenuData = async () => {
-      setloader(true);
-      try {
-        const res = await axios.get(
-          "http://localhost:7013/api/user/get-hub-menu",
-          {
-            params: {
-              hubId: address.hubId, // Only need hubId
-            },
-          }
-        );
-
-        if (res.status === 200) {
-          setAllHubMenuData(res.data.menu);
-        } else {
-          setAllHubMenuData([]);
-        }
-      } catch (error) {
-        console.log(error);
-        setAllHubMenuData([]);
-      } finally {
-        setloader(false);
-      }
-    };
-
-    fetchAllMenuData();
-    // Fetch runs only when the HUB changes (i.e., address?.hubId)
-  }, [address?.hubId]);
-
-  // ++ 5. EFFECT 2: LOCAL FILTERING ON DATE/SESSION CHANGE ++
-  useEffect(() => {
-    // Check if data is loaded
-    if (allHubMenuData.length === 0) {
-      setMenuItems([]);
-      return;
-    }
-
-    // ++ THIS IS THE FIX ++
-    // Create a normalized string from the state to match the DB
-    const selectedDateISO = selectedDate.toISOString();
-    // ++ END FIX ++
-
-    // Filter the full dataset LOCALLY
-    const filtered = allHubMenuData.filter(
-      (item) =>
-        // NOTE: item.deliveryDate is coming from the API (e.g., ...T00:00:00.000Z)
-        item.deliveryDate === selectedDateISO && // This will now match
-        item.session === selectedSession
-    );
-
-    setMenuItems(filtered);
-  }, [allHubMenuData, selectedDate, selectedSession]);
 
   const [cartCount, setCartCount] = useState(0);
   const [isCartVisible, setIsCartVisible] = useState(false);
@@ -148,7 +68,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   const onClose = () => {
     setOpen(false);
   };
-  const [isMultiCartOpen, setIsMultiCartOpen] = useState(false);
+
   const [show4, setShow4] = useState(false);
 
   const handleShow4 = () => setShow4(true);
@@ -167,11 +87,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   const handleClose2 = () => setShow2(false);
   const handleShow2 = () => setShow2(true);
 
-  // This is your original fooditemdata, we leave it here
-  // but we won't use it for the main list for now.
   const [fooditemdata, setfooditemdata] = useState([]);
-
-  // Your original getfooditems function
   const getfooditems = async () => {
     if (fooditemdata.length < 0) {
       setloader(true);
@@ -179,7 +95,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
     try {
       let res = await axios.get(
-        "http://localhost:7013/api/admin/getFoodItemsUnBlocks"
+        "https://dailydish.in/api/admin/getFoodItemsUnBlocks"
       );
       if (res.status === 200) {
         setfooditemdata(res.data.data);
@@ -198,7 +114,30 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   };
 
   const user = JSON.parse(localStorage.getItem("user"));
+  // Track "view_menu" event once per page load (dev-safe + context)
+  const sentViewMenuRef = useRef(false);
+
+  useEffect(() => {
+    // extra guard: if GA isn't loaded yet, skip
+    if (!window.gtag) return;
+
+    // dev/prod-safe guard (prevents Strict Mode double count)
+    if (sentViewMenuRef.current || sessionStorage.getItem('dd_view_menu_fired') === '1') return;
+
+    window.gtag('event', 'view_menu', {
+      user_type: user && user._id ? 'logged_in' : 'guest',
+      user_id: user?._id,                  // optional
+      page_path: window.location.pathname + window.location.search,
+      page_location: window.location.href,
+    });
+
+    sentViewMenuRef.current = true;
+    sessionStorage.setItem('dd_view_menu_fired', '1');
+    }, []); // fire once per mount
+
   const addCart1 = async (item, checkOf, matchedLocation) => {
+    // console.log("check  ===>",checkOf,matchedLocation);
+
     if (!user) {
       Swal2.fire({
         toast: true,
@@ -254,8 +193,6 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
     }
 
     const newCartItem = {
-      deliveryDate: new Date(selectedDate).toISOString(),
-      session: selectedSession,
       foodItemId: item?._id,
       price: checkOf ? checkOf?.price : matchedLocation?.foodprice,
       totalPrice: checkOf ? checkOf?.price : matchedLocation?.foodprice,
@@ -277,12 +214,8 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
     const cart = JSON.parse(localStorage.getItem("cart"));
     const cartArray = Array.isArray(cart) ? cart : [];
 
-    // Find item IN THE CURRENT SLOT
     const itemIndex = cartArray.findIndex(
-      (cartItem) =>
-        cartItem?.foodItemId === newCartItem?.foodItemId &&
-        cartItem.deliveryDate === newCartItem.deliveryDate && // ++
-        cartItem.session === newCartItem.session // ++
+      (cartItem) => cartItem?.foodItemId === newCartItem?.foodItemId
     );
 
     if (itemIndex === -1) {
@@ -295,7 +228,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
         toast: true,
         position: "bottom",
         icon: "info",
-        title: `Item is already in this slot's cart`,
+        title: `Item is already in cart`,
         showConfirmButton: false,
         timer: 3000,
         timerProgressBar: true,
@@ -316,13 +249,16 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
     const addonedCarts = async () => {
       try {
-        let res = await axios.post("http://localhost:7013/api/cart/addCart", {
-          userId: user?._id,
-          items: storedCart,
-          lastUpdated: Date.now,
-          username: user?.Fname,
-          mobile: user?.Mobile,
-        });
+        let res = await axios.post(
+          "https://dailydish.in/api/cart/addCart",
+          {
+            userId: user?._id,
+            items: storedCart,
+            lastUpdated: Date.now,
+            username: user?.Fname,
+            mobile: user?.Mobile,
+          }
+        );
       } catch (error) {
         console.log(error);
       }
@@ -342,18 +278,18 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   };
 
   const increaseQuantity = (foodItemId, checkOf, item, matchedLocation) => {
+    console.log("increaseQuantity called:", {
+      foodItemId,
+      checkOf,
+      item: item?.foodname,
+      matchedLocation,
+    });
     const maxStock = matchedLocation?.Remainingstock || 0;
-    const selectedDateISO = selectedDate.toISOString();
+
     if (!checkOf) {
       // Regular cart item increase
       const updatedCart = Carts.map((cartItem) => {
-        // ++ MODIFY THIS 'IF' STATEMENT ++
-        if (
-          cartItem.foodItemId === foodItemId &&
-          cartItem.deliveryDate === selectedDateISO &&
-          cartItem.session === selectedSession &&
-          !cartItem.extra // Your logic for non-offer items
-        ) {
+        if (cartItem.foodItemId === foodItemId) {
           if (cartItem.Quantity < maxStock) {
             return {
               ...cartItem,
@@ -381,22 +317,13 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
       updateCartData(updatedCart);
     } else {
-      const offerPr = Carts.find(
-        (ele) =>
-          ele.foodItemId == foodItemId &&
-          ele.deliveryDate === selectedDate.toISOString() &&
-          ele.session === selectedSession &&
-          !ele.extra
-      );
+      // Offer cart logic
+      const offerPr = Carts.find((ele) => ele.foodItemId == foodItemId);
 
       if (offerPr && offerPr.offerQ > offerPr.Quantity) {
+        // Increase regular offer item
         const updatedCart = Carts.map((cartItem) => {
-          if (
-            cartItem.foodItemId === foodItemId &&
-            cartItem.deliveryDate === selectedDateISO &&
-            cartItem.session === selectedSession &&
-            !cartItem.extra
-          ) {
+          if (cartItem.foodItemId === foodItemId) {
             if (cartItem.Quantity < maxStock) {
               return {
                 ...cartItem,
@@ -424,22 +351,15 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
         updateCartData(updatedCart);
       } else {
+        // Check if extra item exists
         const offerPrXt = Carts?.find(
-          (ele) =>
-            ele.foodItemId === foodItemId &&
-            ele.deliveryDate === selectedDate.toISOString() &&
-            ele.session === selectedSession &&
-            ele.extra === true
+          (ele) => ele.foodItemId === foodItemId && ele.extra === true
         );
 
         if (offerPrXt) {
+          // Increase extra item
           const updatedCart = Carts.map((cartItem) => {
-            if (
-              cartItem.foodItemId === foodItemId &&
-              cartItem.deliveryDate === selectedDateISO &&
-              cartItem.session === selectedSession &&
-              cartItem.extra === true
-            ) {
+            if (cartItem.foodItemId === foodItemId && cartItem.extra === true) {
               if (cartItem.Quantity < maxStock) {
                 return {
                   ...cartItem,
@@ -467,11 +387,10 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
           updateCartData(updatedCart);
         } else {
+          // Add new extra item
           updateCartData([
             ...Carts,
             {
-              deliveryDate: selectedDate.toISOString(),
-              session: selectedSession,
               foodItemId: item?._id,
               price: matchedLocation?.foodprice,
               totalPrice: matchedLocation?.foodprice,
@@ -499,17 +418,17 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   const [show, setShow] = useState(true);
   const [expiryDays, setExpiryDays] = useState(0);
 
+  // Function to decrease quantity
   const decreaseQuantity = (foodItemId, checkOf, matchedLocation) => {
-    const selectedDateISO = selectedDate.toISOString();
+    console.log("decreaseQuantity called:", {
+      foodItemId,
+      checkOf,
+      matchedLocation,
+    });
     if (!checkOf) {
+      // Regular cart item decrease
       const updatedCart = Carts.map((item) => {
-        if (
-          item.foodItemId === foodItemId &&
-          item.Quantity > 0 &&
-          item.deliveryDate === selectedDateISO &&
-          item.session === selectedSession &&
-          !item.extra
-        ) {
+        if (item.foodItemId === foodItemId && item.Quantity > 0) {
           return {
             ...item,
             Quantity: item.Quantity - 1,
@@ -521,24 +440,13 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
       updateCartData(updatedCart);
     } else {
-      const offerPr = Carts.find(
-        (ele) =>
-          ele.foodItemId == foodItemId &&
-          ele.deliveryDate === selectedDate.toISOString() &&
-          ele.session === selectedSession &&
-          !ele.extra
-      );
+      // Offer cart logic
+      const offerPr = Carts.find((ele) => ele.foodItemId == foodItemId);
 
       if (offerPr && offerPr.offerQ > offerPr.Quantity) {
         // Handle regular offer item decrease
         const updatedCart = Carts.map((item) => {
-          if (
-            item.foodItemId === foodItemId &&
-            item.Quantity > 0 &&
-            item.deliveryDate === selectedDateISO &&
-            item.session === selectedSession &&
-            !item.extra
-          ) {
+          if (item.foodItemId === foodItemId && item.Quantity > 0) {
             const newQuantity = item.Quantity - 1;
             // Calculate offer price correctly
             let newTotalPrice;
@@ -563,11 +471,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
       } else {
         // Handle extra item decrease
         const offerExtraItem = Carts?.find(
-          (ele) =>
-            ele.foodItemId === foodItemId &&
-            ele.deliveryDate === selectedDate.toISOString() &&
-            ele.session === selectedSession &&
-            ele.extra === true
+          (ele) => ele.foodItemId === foodItemId && ele.extra === true
         );
 
         if (offerExtraItem) {
@@ -575,9 +479,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
             if (
               item.foodItemId === foodItemId &&
               item.extra === true &&
-              item.Quantity > 0 &&
-              item.deliveryDate === selectedDateISO &&
-              item.session === selectedSession
+              item.Quantity > 0
             ) {
               return {
                 ...item,
@@ -590,13 +492,9 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
           updateCartData(updatedCart);
         } else {
+          // Handle regular item decrease when not in offer mode
           const updatedCart = Carts.map((item) => {
-            if (
-              item.foodItemId === foodItemId &&
-              item.Quantity > 0 &&
-              item.deliveryDate === selectedDateISO &&
-              item.session === selectedSession
-            ) {
+            if (item.foodItemId === foodItemId && item.Quantity > 0) {
               return {
                 ...item,
                 Quantity: item.Quantity - 1,
@@ -669,79 +567,6 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
         );
     }
   }
-  const groupedCarts = useMemo(() => {
-    if (!Carts || Carts.length === 0) return [];
-
-    // 1. Group items by a unique key: "Date|Session"
-    const groups = Carts.reduce((acc, item) => {
-      const key = `${item.deliveryDate}|${item.session}`;
-
-      // Ensure date and session exist before calculating total
-      if (!item.deliveryDate || !item.session) return acc;
-
-      if (!acc[key]) {
-        acc[key] = {
-          session: item.session,
-          date: new Date(item.deliveryDate),
-          totalItems: 0,
-          subtotal: 0,
-          items: [], // Store raw items here
-        };
-      }
-
-      acc[key].totalItems += item.Quantity;
-      acc[key].subtotal += item.price * item.Quantity;
-      acc[key].items.push(item); // Store the raw item details
-
-      return acc;
-    }, {});
-
-    // 2. Convert the object back into a sorted array
-    return Object.values(groups).sort((a, b) => a.date - b.date);
-  }, [Carts]);
-
-  const overallTotalItems = useMemo(() => {
-    return groupedCarts.reduce((acc, slot) => acc + slot.totalItems, 0);
-  }, [groupedCarts]);
-
-  const overallSubtotal = useMemo(() => {
-    return groupedCarts.reduce((acc, slot) => acc + slot.subtotal, 0);
-  }, [groupedCarts]);
-
-  const handleSlotQuantityChange = (
-    type,
-    foodItemId,
-    checkOf,
-    item,
-    matchedLocation
-  ) => {
-    // This handler checks the current selected slot (date/session)
-    // and calls your existing slot-aware functions.
-
-    // We must update the global selected date/session temporarily so the
-    // existing slot-aware logic (increaseQuantity, decreaseQuantity) works.
-
-    // NOTE: This is a complex workaround because your increase/decrease functions
-    // rely on reading the global selectedDate/selectedSession state.
-
-    // The correct slot for the item is stored in the item itself (item.deliveryDate, item.session)
-    const itemDate = item.deliveryDate
-      ? new Date(item.deliveryDate)
-      : selectedDate;
-    const itemSession = item.session || selectedSession;
-
-    // Temporarily set the selected date/session to match the item being modified
-    setSelectedDate(itemDate);
-    setSelectedSession(itemSession);
-
-    // Now call the core logic
-    if (type === "increase") {
-      increaseQuantity(foodItemId, checkOf, item, matchedLocation);
-    } else {
-      decreaseQuantity(foodItemId, checkOf, matchedLocation);
-    }
-  };
-
   const goToCheckout = () => {
     const address =
       addresstype == "apartment"
@@ -842,10 +667,11 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
       }
 
       const location = `${apartmentname}, ${addressField}, ${pincode}`;
+    
 
       if (user?._id && location) {
         const response = await axios.put(
-          "http://localhost:7013/api/admin/getuseroffer",
+          "https://dailydish.in/api/admin/getuseroffer",
           {
             id: user._id,
             location,
@@ -873,7 +699,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   useEffect(() => {
     const checkTime = () => {
       const now = new Date();
-      const currentTimeInMinutes = 10 * 60 + now.getMinutes(); // Convert current time to minutes
+      const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes(); // Convert current time to minutes
       // Define the time ranges in minutes
       const lunchStart = 7 * 60; // 7:00 AM
       const lunchPrepStart = 9 * 60; // 9:00 AM
@@ -998,7 +824,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
       const config = {
         url: "/User/Sendotp",
         method: "post",
-        baseURL: "http://localhost:7013/api",
+        baseURL: "https://dailydish.in/api",
 
         headers: { "content-type": "application/json" },
         data: {
@@ -1092,7 +918,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
       const config = {
         url: "User/mobileotpverification",
         method: "post",
-        baseURL: "http://localhost:7013/api/",
+        baseURL: "https://dailydish.in/api/",
         header: { "content-type": "application/json" },
         data: {
           Mobile: Mobile,
@@ -1158,41 +984,22 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
     }, 0);
   }, [cart]);
 
-  // ++ ADD THESE NEW MEMOS for the *CURRENTLY SELECTED SLOT* ++
-  const currentSlotCart = useMemo(() => {
-    if (!Carts) return [];
-    const selectedDateISO = selectedDate.toISOString();
-    return Carts.filter(
-      (item) =>
-        item.deliveryDate === selectedDateISO &&
-        item.session === selectedSession
-    );
-  }, [Carts, selectedDate, selectedSession]);
+  useEffect(() => {
+    getfooditems();
+  }, [cart]);
 
-  const currentSlotSubtotal = useMemo(() => {
-    return currentSlotCart.reduce((acc, item) => {
-      return acc + Number(item?.price) * Number(item?.Quantity);
-    }, 0);
-  }, [currentSlotCart]);
-
-  const currentSlotTotalQuantity = useMemo(() => {
-    return currentSlotCart.reduce((acc, item) => {
-      return acc + Number(item?.Quantity);
-    }, 0);
-  }, [currentSlotCart]);
-
-  // ++ 10. MODIFY getCartQuantity (TO BE SLOT-AWARE) ++
   const getCartQuantity = (itemId) => {
-    // This function now gets the quantity for the *current slot only*
-    const selectedDateISO = selectedDate.toISOString();
-    return Carts?.filter(
-      (cartItem) =>
-        cartItem?.foodItemId === itemId &&
-        cartItem.deliveryDate === selectedDateISO && // ++
-        cartItem.session === selectedSession // ++
-    )?.reduce((total, curr) => total + curr?.Quantity, 0);
+    return Carts?.filter((cartItem) => cartItem?.foodItemId === itemId)?.reduce(
+      (total, curr) => total + curr?.Quantity,
+      0
+    );
   };
 
+  useEffect(() => {
+    if (address && Carts.length && fooditemdata.length) {
+      ValidateCart(address, cart, setCarts, fooditemdata);
+    }
+  }, [address?.apartmentname, address?.Address, address?.pincode]);
   return (
     <div>
       <ToastContainer />
@@ -1204,33 +1011,6 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
           Carts={Carts}
           getAllOffer={getAllOffer}
         />
-      </div>
-
-      {/* ++ 6. ADD THE SELECTOR COMPONENT ++ */}
-      {/* This div will be the sticky container for the new UI */}
-      <div className="sticky-menu-header">
-        <div style={{ position: "relative" }}>
-          {user && !address && (
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                backgroundColor: "#f9f8f6",
-                zIndex: 10,
-                pointerEvents: "none",
-                opacity: 0.8,
-              }}
-            ></div>
-          )}
-          <DateSessionSelector
-            onChange={handleSelectionChange}
-            currentDate={selectedDate}
-            currentSession={selectedSession}
-          />
-        </div>
       </div>
 
       {wallet?.balance > 0 && show && (
@@ -1307,7 +1087,25 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
             </div>
           ) : null}
 
-          {/* ... (your GIF message div) ... */}
+          {/* <div className="maincontainer ">
+
+          <div
+            className="d-flex gap-3 mb-2 messageDiv  rounded-2"
+            style={{ backgroundColor: "white", padding: "5px" }}
+          >
+            <div>
+              <img
+                src={`Assets/${gifUrl}`}
+                alt="fdfdfds"
+                className="praparing-food"
+              />
+            </div>
+
+            <div>
+              <div className="prepare-food-text">{message}</div>
+            </div>
+          </div>
+        </div> */}
 
           {loader ? (
             <div
@@ -1324,8 +1122,23 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
                 <div></div>
                 <div></div>
               </div>
+              {/* <Lottie animationData ={partybomb} /> */}
             </div>
           ) : null}
+          {/* {loader ? (
+          <div
+            className="d-flex justify-content-center align-item-center"
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 9999,
+            }}
+          >
+            <Lottie animationData={partybomb} />
+          </div>
+        ) : null} */}
         </Container>
       </div>
       <div style={{ position: "relative" }}>
@@ -1344,82 +1157,91 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
             }}
           ></div>
         )}
-        <div className="maincontainer">
+        <div className="maincontainer mt-2">
           <div className="mobile-product-box " style={{ marginBottom: "70px" }}>
             <div className="d-flex gap-1 mb-2 flex-column">
               <div className="row ">
-                {/* ++ 7. MODIFY THE PRODUCT LISTING ++ */}
-                {/* We change 'fooditemdata' to 'menuItems' */}
-                {/* We also remove the .filter() and .sort() because our dummy data is already prepared */}
-                {menuItems?.map((item, i) => {
-                  let matchedLocation = item.locationPrice?.[0];
-                  const checkOf = AllOffer?.find(
-                    (ele) => ele?.foodItemId == item?._id?.toString()
-                  );
-                  if (!matchedLocation) {
-                    matchedLocation = {
-                      Remainingstock: 0,
-                      foodprice: item.foodprice,
-                      basePrice: item.basePrice,
-                    };
-                  }
-                  return (
-                    <div
-                      key={item._id?.toString() || i}
-                      className="col-6 col-md-6 mb-2 d-flex justify-content-center"
-                    >
-                      <div className="mobl-product-card">
-                        <div className="productborder">
-                          <div className="prduct-box rounded-1">
-                            <div
-                              onClick={() => showDrawer(item)}
-                              className="imagebg"
-                            >
-                              {item?.foodcategory === "Veg" ? (
-                                <img
-                                  src={IsVeg}
-                                  alt="IsVeg"
-                                  className="isVegIcon"
-                                />
-                              ) : (
-                                <img
-                                  src={IsNonVeg}
-                                  alt="IsNonVeg"
-                                  className="isVegIcon"
-                                />
-                              )}
-                              <img
-                                src={`${item?.Foodgallery[0]?.image2}`}
-                                alt=""
-                                className="mbl-product-img"
-                              />
-                            </div>
-                          </div>
-                          <div className="food-name-container">
-                            <p className="food-name">{item?.foodname}</p>
-                            <small className="food-unit">{item?.unit}</small>
-                          </div>
+                {fooditemdata
+                  ?.filter((ele) => {
+                    if (address) {
+                      const location = `${address?.apartmentname}, ${address?.Address}, ${address?.pincode}`;
+                      const productLocation = ele.locationPrice || [];
 
-                          <div className="d-flex gap-2">
-                            {/* Show base price only if it's different from foodprice */}
-                            {matchedLocation?.basePrice !==
-                              (matchedLocation?.foodprice ||
-                                item?.foodprice) && (
+                      return productLocation.some((item) =>
+                        (item?.loccationAdreess || []).includes(location)
+                      );
+                    } else {
+                      return true;
+                    }
+                  })
+                  ?.sort((a, b) => {
+                    if (address) {
+                      const location = `${address?.apartmentname}, ${address?.Address}, ${address?.pincode}`;
+
+                      // Find matching location price entries for both items
+                      const aLocationPrice = a.locationPrice?.find((item) =>
+                        (item?.loccationAdreess || []).includes(location)
+                      );
+                      const bLocationPrice = b.locationPrice?.find((item) =>
+                        (item?.loccationAdreess || []).includes(location)
+                      );
+
+                      // Get priority values (default to 0 if not found)
+                      const aPriority = aLocationPrice?.Priority || 0;
+                      const bPriority = bLocationPrice?.Priority || 0;
+
+                      // Sort by priority in ascending order
+                      return aPriority - bPriority;
+                    }
+                    return 0; // No sorting when address is not provided
+                  })
+                  ?.map((item, i) => {
+                    const location = `${address?.apartmentname}, ${address?.Address}, ${address?.pincode}`;
+                    let matchedLocation = item.locationPrice?.find((loc) =>
+                      loc.loccationAdreess?.includes(location)
+                    );
+                    const checkOf = AllOffer?.find(
+                      (ele) => ele?.foodItemId == item?._id?.toString()
+                    );
+                    if (!matchedLocation) {
+                      matchedLocation = item;
+                    }
+                    return (
+                      <div
+                        key={item._id?.toString() || i}
+                        className="col-6 col-md-6 mb-2 d-flex justify-content-center"
+                      >
+                        <div className="mobl-product-card">
+                          <div className="productborder">
+                            <div className="prduct-box rounded-1">
                               <div
-                                style={{
-                                  textDecoration: "line-through",
-                                  color: "#6b6b6b",
-                                  fontSize: "15px",
-                                  marginLeft: "7px",
-                                }}
+                                onClick={() => showDrawer(item)}
+                                className="imagebg"
                               >
-                                <p className="d-flex gap-1">
-                                  <b>₹</b>
-                                  {matchedLocation?.basePrice ||
-                                    item?.basePrice}
-                                </p>
+                                {item?.foodcategory === "Veg" ? (
+                                  <img
+                                    src={IsVeg}
+                                    alt="IsVeg"
+                                    className="isVegIcon"
+                                  />
+                                ) : (
+                                  <img
+                                    src={IsNonVeg}
+                                    alt="IsNonVeg"
+                                    className="isVegIcon"
+                                  />
+                                )}
+                                <img
+                                  src={`${item?.Foodgallery[0]?.image2}`}
+                                  alt=""
+                                  className="mbl-product-img"
+                                />
                               </div>
-                            )}
+                            </div>
+                            <div className="food-name-container">
+                              <p className="food-name">{item?.foodname}</p>
+                              <small className="food-unit">{item?.unit}</small>
+                            </div>
 
                             <div className="productprice">
                               {checkOf ? (
@@ -1439,48 +1261,131 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
                                 </p>
                               )}
                             </div>
-                          </div>
 
-                          {address && (
-                            <div className="parentdivqty">
-                              <div className="h-100 d-flex justify-content-center align-items-center">
-                                <span
-                                  style={{
-                                    background:
-                                      matchedLocation?.Remainingstock &&
-                                      "rgba(255, 179, 0, 0.25)",
-                                  }}
-                                >
-                                  {checkOf && <BiSolidOffer color="green" />}{" "}
-                                  {matchedLocation?.Remainingstock || 0}{" "}
-                                  servings Left
-                                </span>
+                            {address && (
+                              <div className="parentdivqty">
+                                <div className="h-100 d-flex justify-content-center align-items-center">
+                                  <span
+                                    style={{
+                                      background:
+                                        matchedLocation?.Remainingstock &&
+                                        "rgba(255, 179, 0, 0.25)",
+                                    }}
+                                  >
+                                    {checkOf && <BiSolidOffer color="green" />}{" "}
+                                    {matchedLocation?.Remainingstock || 0}{" "}
+                                    servings Left
+                                  </span>
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          <div className="d-flex justify-content-center mb-2">
-                            {getCartQuantity(item?._id) === 0 ? (
-                              // Item not in cart
-                              address &&
-                              (matchedLocation?.Remainingstock <= 0 ||
-                                !matchedLocation?.Remainingstock) ? (
-                                // Sold Out Button
+                            <div className="d-flex justify-content-center mb-2">
+                              {getCartQuantity(item?._id) === 0 ? (
+                                // Item not in cart
+                                address &&
+                                (matchedLocation?.Remainingstock <= 0 ||
+                                  !matchedLocation?.Remainingstock) ? (
+                                  // Sold Out Button
+                                  <button className="sold-out-btn" disabled>
+                                    <span className="sold-out-btn-text">
+                                      Sold Out
+                                    </span>
+                                  </button>
+                                ) : gifUrl === "Closed.gif" ? (
+                                  <button
+                                    className="add-to-cart-btn-disabled"
+                                    disabled
+                                  >
+                                    <span className="add-to-cart-btn-text">
+                                      {" "}
+                                      Add
+                                    </span>
+                                    <FaPlus className="add-to-cart-btn-icon" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    className="add-to-cart-btn"
+                                    onClick={() =>
+                                      addCart1(item, checkOf, matchedLocation)
+                                    }
+                                    disabled={user && !address}
+                                    style={{
+                                      opacity: user && !address ? 0.5 : 1,
+                                    }}
+                                  >
+                                    <span className="add-to-cart-btn-text">
+                                      {" "}
+                                      Add{" "}
+                                    </span>
+                                    <span className="add-to-cart-btn-icon">
+                                      {" "}
+                                      <FaPlus />
+                                    </span>
+                                  </button>
+                                )
+                              ) : getCartQuantity(item?._id) > 0 ? (
+                                // Item in cart with quantity
+                                <button className="increaseBtn">
+                                  <div
+                                    className="faplus"
+                                    onClick={() =>
+                                      !(user && !address) &&
+                                      decreaseQuantity(
+                                        item?._id,
+                                        checkOf,
+                                        matchedLocation
+                                      )
+                                    }
+                                    style={{
+                                      opacity: user && !address ? 0.5 : 1,
+                                      pointerEvents:
+                                        user && !address ? "none" : "auto",
+                                    }}
+                                  >
+                                    <FaMinus />
+                                  </div>
+                                  <div className="faQuantity">
+                                    {getCartQuantity(item?._id)}
+                                  </div>
+                                  <div
+                                    className="faplus"
+                                    onClick={() =>
+                                      !(user && !address) &&
+                                      increaseQuantity(
+                                        item?._id,
+                                        checkOf,
+                                        item,
+                                        matchedLocation
+                                      )
+                                    }
+                                    style={{
+                                      opacity: user && !address ? 0.5 : 1,
+                                      pointerEvents:
+                                        user && !address ? "none" : "auto",
+                                    }}
+                                  >
+                                    <FaPlus />
+                                  </div>
+                                </button>
+                              ) : matchedLocation?.Remainingstock <= 0 ||
+                                !matchedLocation?.Remainingstock ? (
+                                // Sold Out button (for items in cart but quantity is 0)
                                 <button className="sold-out-btn" disabled>
                                   <span className="sold-out-btn-text">
                                     Sold Out
                                   </span>
                                 </button>
                               ) : gifUrl === "Closed.gif" ? (
-                                <button
-                                  className="add-to-cart-btn-disabled"
-                                  disabled
-                                >
+                                <button className="add-to-cart-btn" disabled>
                                   <span className="add-to-cart-btn-text">
                                     {" "}
-                                    Add
+                                    Add{" "}
                                   </span>
-                                  <FaPlus className="add-to-cart-btn-icon" />
+                                  <span className="add-to-cart-btn-icon">
+                                    {" "}
+                                    <FaPlus />
+                                  </span>
                                 </button>
                               ) : (
                                 <button
@@ -1502,105 +1407,13 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
                                     <FaPlus />
                                   </span>
                                 </button>
-                              )
-                            ) : getCartQuantity(item?._id) > 0 ? (
-                              // Item in cart with quantity
-                              <button className="increaseBtn">
-                                <div
-                                  className="faplus"
-                                  onClick={() =>
-                                    !(user && !address) &&
-                                    decreaseQuantity(
-                                      item?._id,
-                                      checkOf,
-                                      matchedLocation
-                                    )
-                                  }
-                                  style={{
-                                    opacity: user && !address ? 0.5 : 1,
-                                    pointerEvents:
-                                      user && !address ? "none" : "auto",
-                                  }}
-                                >
-                                  <FaMinus />
-                                </div>
-                                <div className="faQuantity">
-                                  {getCartQuantity(item?._id)}
-                                </div>
-                                <div
-                                  className="faplus"
-                                  onClick={() =>
-                                    !(user && !address) &&
-                                    increaseQuantity(
-                                      item?._id,
-                                      checkOf,
-                                      item,
-                                      matchedLocation
-                                    )
-                                  }
-                                  style={{
-                                    opacity: user && !address ? 0.5 : 1,
-                                    pointerEvents:
-                                      user && !address ? "none" : "auto",
-                                  }}
-                                >
-                                  <FaPlus />
-                                </div>
-                              </button>
-                            ) : matchedLocation?.Remainingstock <= 0 ||
-                              !matchedLocation?.Remainingstock ? (
-                              // Sold Out button (for items in cart but quantity is 0)
-                              <button className="sold-out-btn" disabled>
-                                <span className="sold-out-btn-text">
-                                  Sold Out
-                                </span>
-                              </button>
-                            ) : gifUrl === "Closed.gif" ? (
-                              <button className="add-to-cart-btn" disabled>
-                                <span className="add-to-cart-btn-text">
-                                  {" "}
-                                  Add{" "}
-                                </span>
-                                <span className="add-to-cart-btn-icon">
-                                  {" "}
-                                  <FaPlus />
-                                </span>
-                              </button>
-                            ) : (
-                              <button
-                                className="add-to-cart-btn"
-                                onClick={() =>
-                                  addCart1(item, checkOf, matchedLocation)
-                                }
-                                disabled={user && !address}
-                                style={{
-                                  opacity: user && !address ? 0.5 : 1,
-                                }}
-                              >
-                                <span className="add-to-cart-btn-text">
-                                  {" "}
-                                  Add{" "}
-                                </span>
-                                <span className="add-to-cart-btn-icon">
-                                  {" "}
-                                  <FaPlus />
-                                </span>
-                              </button>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-
-                {/* Show a message if the dummy menu is empty */}
-                {!loader && menuItems.length === 0 && (
-                  <div className="col-12 text-center my-5">
-                    <h4>No items available for this slot.</h4>
-                    <p>Please check back later or select a different day!</p>
-                  </div>
-                )}
+                    );
+                  })}
               </div>
             </div>
             <div className="col-md-12">
@@ -1611,14 +1424,79 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
           </div>
         </div>
 
-        <MultiCartDrawer
-          groupedCarts={groupedCarts}
-          overallSubtotal={overallSubtotal}
-          overallTotalItems={overallTotalItems}
-          onJumpToSlot={handleSelectionChange} // <-- This is the only change you need!
-        />
+        {Carts?.length > 0 && (
+          <div className="cartbutton">
+            <div className="cartbtn">
+              <div className="d-flex justify-content-around align-items-center">
+                <div className="d-flex gap-1 align-items-center">
+                  <p className="cart-slot-type">{SloteType}</p>
+                  <div className="cart-items-price">
+                    {totalQuantity} items | ₹{newsubtotal}
+                  </div>
+                </div>
+                {user ? (
+                  <a
+                    onClick={() => {
+                      if (!(user && !address)) {
+                        goToCheckout();
+                      }
+                    }}
+                    style={{
+                      color: "unset",
+                      textDecoration: "none",
+                      opacity: user && !address ? 0.5 : 1,
+                      pointerEvents: user && !address ? "none" : "auto",
+                    }}
+                  >
+                    <div className="d-flex gap-1 align-content-center ">
+                      <div className="my-meal-icon">
+                        <img src={MyMeal} alt="My Meal" />
+                        <div className="red-icon"></div>
+                      </div>
 
-        {/* ... (Rest of your Modals: show3, show2) ... */}
+                      <div className="my-meal-text">My Meal</div>
+                    </div>
+                  </a>
+                ) : (
+                  <div
+                    className="d-flex gap-2 viewcartbtn"
+                    onClick={() => {
+                      const address =
+                        addresstype == "apartment"
+                          ? JSON.parse(localStorage.getItem("address"))
+                          : JSON.parse(localStorage.getItem("coporateaddress"));
+                      if (!address) {
+                        Swal2.fire({
+                          toast: true,
+                          position: "bottom",
+                          icon: "info",
+                          title: `Please sign in to your account`,
+                          showConfirmButton: false,
+                          timer: 3000,
+                          timerProgressBar: true,
+                          customClass: {
+                            popup: "me-small-toast",
+                            title: "me-small-toast-title",
+                          },
+                        });
+                        // return;
+                      }
+                      navigate("/", { replace: true });
+                    }}
+                  >
+                    <div className="my-meal-icon">
+                      <img src={MyMeal} alt="My Meal" />
+                      <div className="red-icon"></div>
+                    </div>
+
+                    <div className="my-meal-text">My Meal</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         <Modal show={show3} backdrop="static" onHide={handleClose3}>
           <Modal.Header closeButton>
             <Modal.Title className="d-flex align-items-center gap-1">
@@ -1733,7 +1611,6 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
           </Modal.Body>
         </Modal>
 
-        {/* ... (Rest of your Drawer) ... */}
         <Drawer
           placement="bottom"
           closable={false}
@@ -1789,15 +1666,13 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
                 {(() => {
                   const currentLocationString = `${address?.apartmentname}, ${address?.Address}, ${address?.pincode}`;
 
-                  // This logic works with our DUMMY DATA's locationPrice array
-                  const matchedLocation =
-                    foodData?.locationPrice?.length > 0
-                      ? foodData.locationPrice[0]
-                      : {
-                          Remainingstock: 0,
-                          foodprice: foodData.foodprice,
-                          basePrice: foodData.basePrice,
-                        };
+                  const matchedLocation = foodData?.locationPrice?.find(
+                    // Corrected property to locationPrice
+                    (locationItem) =>
+                      locationItem?.loccationAdreess?.includes(
+                        currentLocationString
+                      )
+                  );
 
                   const checkOffer = AllOffer?.find(
                     (offer) =>
