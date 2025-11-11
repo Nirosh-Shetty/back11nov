@@ -1,0 +1,200 @@
+/* --- MultiCartDrawer.css --- */
+
+/* --- Base Drawer Overrides --- */
+.multi-cart-drawer.ant-drawer-root .ant-drawer-content-wrapper {
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.multi-cart-drawer .ant-drawer-header {
+  /* Hide default header since we use custom one or the handle */
+  display: none;
+}
+
+.multi-cart-drawer .ant-drawer-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Close Handle Bar (Top of the drawer) --- */
+.close-handle-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+  background-color: #ffffff;
+  border-radius: 20px 20px 0 0; 
+  cursor: pointer;
+}
+
+/* --- Main Header (Your Meals) --- */
+.multi-cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eee;
+}
+
+.multi-cart-header h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 0;
+}
+
+.total-items-header {
+  font-size: 14px;
+  color: #6B8E23;
+  font-weight: 500;
+}
+
+/* --- Slot List Container --- */
+.slot-list-container {
+  padding: 10px 20px;
+  flex-grow: 1; 
+  overflow-y: auto;
+}
+
+/* --- Individual Slot Item (The Green Block) --- */
+.cart-slot-item-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background-color: #9cd169; /* Distinct light green color */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  color: #000; /* Darker text inside the green box */
+}
+
+.slot-title-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.slot-session-date {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 2px;
+    display: flex;
+    gap: 5px;
+}
+.session-name {
+    color: #333; /* Session name color */
+}
+.date-name {
+    color: #444; /* Date name color */
+    font-weight: 400;
+}
+
+.item-count-small {
+    font-size: 13px;
+    color: #555;
+    font-weight: 500;
+}
+
+.slot-summary-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.slot-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    padding-right: 10px;
+}
+
+.slot-view-btn {
+    background-color: #6B8E23; /* Green button */
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.slot-view-btn:hover {
+    background-color: #5a752a;
+}
+
+
+/* --- Footer Summary (Bottom of the drawer) --- */
+.multi-cart-footer-summary {
+    padding: 15px 20px;
+    border-top: 1px solid #ddd;
+    background-color: #ffffff;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.summary-label {
+    color: #333;
+}
+
+.summary-price {
+    color: #6B8E23;
+}
+
+.checkout-btn {
+    /* Style for Bootstrap btn-success to match theme */
+    background-color: #6B8E23 !important;
+    border-color: #6B8E23 !important;
+    font-weight: 600;
+    padding: 12px 0;
+}
+
+/* --- Floating Bar (Home.jsx) Styles --- */
+/* Note: This assumes you use .cartbutton for the main floating bar. */
+.cartbutton-manager {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900; 
+    padding: 10px 15px; 
+    cursor: pointer;
+    background-color: transparent;
+}
+
+.cartbutton-manager .cartbtn {
+    background-color: #6B8E23; 
+    color: #ffffff; 
+    padding: 10px 15px;
+    border-radius: 10px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.cartbutton-manager .cart-slot-type {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 0;
+    padding-right: 8px;
+    border-right: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.cartbutton-manager .cart-items-price {
+    font-size: 16px;
+    font-weight: 700;
+    margin-left: 8px;
+}
+
+.cartbutton-manager .viewcartbtn-trigger {
+    align-items: center;
+    font-size: 14px;
+    font-weight: 600;
+}

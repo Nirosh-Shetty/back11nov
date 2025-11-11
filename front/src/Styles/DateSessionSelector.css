@@ -1,0 +1,158 @@
+.date-session-wrapper {
+  background: #fdfcf8;
+  /* padding: 20px; */
+  border-radius: 12px;
+  font-family: "Inter", sans-serif;
+  color: #333;
+  width: 30%;
+  margin: auto;
+}
+@media (max-width: 799px) {
+  .date-session-wrapper {
+    width: 100%;
+  }}
+
+/* Header with scroll buttons */
+.date-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--copper-accents);
+  font-weight: bold;
+  transition: opacity 0.3s;
+}
+
+.nav-btn:hover {
+  opacity: 0.7;
+}
+
+/* Date scrolling strip */
+.date-strip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 10px 0;
+  flex: 1;
+   -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.date-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.date-card {
+  flex-shrink: 0;
+  /* min-width: 120px; */
+  background: #fff;
+  border: 1px solid var(--copper-accents);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 76px;
+  height: 64px;
+  margin-left: 10px;
+}
+
+.date-card.active {
+  background: var(--copper-accents);
+  color: #fff;
+  border: 1.5px solid var(--secondary-text);
+  box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3);
+}
+
+.date-card .day {
+  font-weight: 600;
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+
+.date-card .date {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.date-card .weekday {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Reset line */
+.reset-line {
+  text-align: right;
+  margin-top: 4px;
+}
+
+.reset-btn {
+  color: #a25320;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: underline;
+
+}
+
+
+/* Session buttons */
+.session-container {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  /* gap: 10px; */
+}
+.session-btn-wrapper {
+  /* flex:1; */
+  background: none;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  padding: 9px 9px 0 9px;
+  transition: all 2s;
+  border-top:2px solid transparent;
+}
+.session-btn-wrapper.active {
+  background: var(--cream-walls);
+    border-top: 2px solid var(--copper-accents);
+}
+
+.session {
+  flex: 1;
+  background: #fff;
+  border: 1px solid var(--copper-accents);
+  border-radius: 12px;
+  text-align: center;
+  padding: 12px 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.session.active {
+  background: var(--copper-accents);
+  color: white;
+  border: 1px solid var(--secondary-text);
+}
+
+.session .title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.session .subtext {
+  font-size: 10px;
+  opacity: 0.8;
+  line-height: 12px;
+}

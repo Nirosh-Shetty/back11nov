@@ -1,0 +1,121 @@
+/*
+ * Create this file at: src/Styles/CheckoutDateStrip.css
+ */
+
+.checkout-date-strip-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.checkout-date-nav-btn {
+  background: #fdfcf8;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #a25320;
+  font-weight: bold;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.checkout-date-nav-btn:hover {
+  background: #f7f7f7;
+  border-color: #a25320;
+}
+
+.checkout-date-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #e0e0e0;
+}
+
+.date-strip-scroller {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 10px 4px;
+  flex: 1;
+  /* Hide scrollbar */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.date-strip-scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.date-card-checkout {
+  flex-shrink: 0;
+  background: #fff;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 12px;
+  padding: 8px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: "Inter", sans-serif;
+  min-width: 100px;
+}
+
+.date-card-checkout.active {
+  background: #a25320;
+  color: #fff;
+  border-color: #a25320;
+  box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3);
+}
+
+.date-card-checkout .day {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 3px;
+}
+.date-card-checkout .date {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Session Button Styles */
+.checkout-session-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 0 10px;
+}
+
+.checkout-session-btn {
+  flex: 1;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  border: 1.5px solid #d9d9d9;
+  border-radius: 12px;
+  background-color: #fff;
+  color: #a25320;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.checkout-session-btn.active {
+  background: #a25320;
+  color: #fff;
+  border-color: #a25320;
+}
+
+.checkout-session-btn:disabled {
+  background-color: #f5f5f5;
+  color: #ccc;
+  border-color: #eee;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
