@@ -4,6 +4,7 @@ import moment from 'moment';
 import { FaAngleUp, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import "../Styles/MultiCartDrawer.css";
+import MyMeal from "../assets/mymeal.svg";
 
 const MultiCartDrawer = ({
     groupedCarts,
@@ -79,7 +80,7 @@ const MultiCartDrawer = ({
                                 >
                                     <div className="d-flex gap-1 align-content-center ">
                                         <div className="my-meal-icon">
-                                            <img src="" alt="" />
+                                            <img src={MyMeal} alt="" />
                                             <div className="red-icon"></div>
                                         </div>
 
@@ -135,7 +136,7 @@ const MultiCartDrawer = ({
 
                         <div className="right-action">
                             <div className="icon-wrap">
-                                <img src="/assets/mydishes.svg" alt="MyDishes" /> 
+                                <img src="/Assets/mydishes.svg" alt="MyDishes" /> 
                                 <span className="red-dot" />
                             </div>
                             <div className="pill-text">My Dishes</div>
@@ -202,7 +203,8 @@ const MultiCartDrawer = ({
                                         >
                                             <div className="d-flex gap-1 align-content-center ">
                                                 <div className="my-meal-icon">
-                                                    <img src="" alt="" />
+                                            <img src={MyMeal} alt="" />
+                                                    {/* <img src={} alt="" /> */}
                                                     {/* <div className="red-icon"></div> */}
                                                 </div>
 

@@ -194,7 +194,7 @@ export default function ReferScreen() {
             */}
             <button onClick={() => navigate(-1)} className="refer-back-btn">
               <img
-                src="/assets/checkoutback.svg"
+                src="/Assets/checkoutback.svg"
                 alt="Back"
                 className="icon-img-l"
                 style={{
@@ -375,7 +375,7 @@ export default function ReferScreen() {
               subtitle="Friends who signed up but haven’t ordered yet"
               icon={
                 <img
-                  src="/assets/pending.svg"
+                  src="/Assets/pending.svg"
                   alt="Pending"
                   className="icon-img-m"
                 />
@@ -394,7 +394,7 @@ export default function ReferScreen() {
                     <div className="refer-left-block">
                       <div className="refer-name-row">
                         <img
-                          src="/assets/airosend.svg"
+                          src="/Assets/airosend.svg"
                           alt="Sent"
                           className="icon-img-s"
                         />
@@ -425,7 +425,7 @@ export default function ReferScreen() {
               subtitle="Friends who completed their first order"
               icon={
                 <img
-                  src="/assets/success.svg"
+                  src="/Assets/success.svg"
                   alt="Success"
                   className="icon-img-m"
                 />
@@ -444,7 +444,7 @@ export default function ReferScreen() {
                     <div className="refer-left-block">
                       <div className="refer-name-row">
                         <img
-                          src="/assets/gifticon.svg"
+                          src="/Assets/gifticon.svg"
                           alt="Gift"
                           className="icon-img-s"
                         />
@@ -487,7 +487,7 @@ export default function ReferScreen() {
         <button className="refer-whatsapp-btn" onClick={openWhatsApp}>
           <span className="refer-whatsapp-text">Invite on WhatsApp</span>
           <img
-            src="/assets/whatsapp.svg"
+            src="/Assets/whatsapp.svg"
             alt="WhatsApp"
             className="icon-img-l"
           />

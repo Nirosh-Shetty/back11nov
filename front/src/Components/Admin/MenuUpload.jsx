@@ -455,7 +455,7 @@ const MenuUpload = () => {
                   <img
                     // 12. FIX: Use your 'Foodgallery' field
                     src={
-                      product.Foodgallery[0]?.image2 || "/assets/logo-container.svg"
+                      product.Foodgallery[0]?.image2 || "/Assets/logo-container.svg"
                     }
                     alt={product.foodname}
                   />

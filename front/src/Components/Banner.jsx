@@ -781,7 +781,7 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
                 onClick={() => navigate("/refer")}
               >
                 <img
-                  src="/assets/gifticon.svg"
+                  src="/Assets/gifticon.svg"
                   alt="refer"
                   className="refer-icon"
                 />

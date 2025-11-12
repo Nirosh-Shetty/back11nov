@@ -75,7 +75,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
               <div className="user-info" style={{ paddingTop: "20px" }}>
                 <button onClick={handleClose} className="nav-back-btn">
                   <img
-                    src="/assets/checkoutback.svg"
+                    src="/Assets/checkoutback.svg"
                     alt="Back"
                     className="icon-img-l"
                     style={{
@@ -94,7 +94,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                   style={{
                     paddingRight: "10px",
                   }}
-                  src="/assets/profile.svg"
+                  src="/Assets/profile.svg"
                   alt="profile"
                   // className="icon-img-l"
                 />
@@ -112,7 +112,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
               <div className="user-info" style={{ paddingTop: "20px" }}>
                 <button onClick={handleClose} className="nav-back-btn">
                   <img
-                    src="/assets/checkoutback.svg"
+                    src="/Assets/checkoutback.svg"
                     alt="Back"
                     className="icon-img-l"
                     style={{
@@ -147,7 +147,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                       onClick={() => handleLinkClick("/orders")}
                     >
                       <img
-                        src="/assets/lists.svg"
+                        src="/Assets/lists.svg"
                         alt="WhatsApp"
                         className="icon-img-l"
                       />
@@ -163,7 +163,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                       onClick={() => handleLinkClick("/wallet")}
                     >
                       <img
-                        src="/assets/wallet1.svg"
+                        src="/Assets/wallet1.svg"
                         alt="WhatsApp"
                         className="icon-img-l"
                       />
@@ -180,7 +180,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                    <NavItem
                 icon={
                   <img
-                    src="/assets/gifticon.svg"
+                    src="/Assets/gifticon.svg"
                     alt="Refer & Earn"
                     className="icon-img-l"
                   />
@@ -191,7 +191,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                   <NavItemExternal
                     icon={
                       <img
-                        src="/assets/whatsapp.svg"
+                        src="/Assets/whatsapp.svg"
                         alt="WhatsApp"
                         className="icon-img-l"
                       />
@@ -203,7 +203,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                   <NavItem
                     icon={
                       <img
-                        src="/assets/legal-document.svg"
+                        src="/Assets/legal-document.svg"
                         alt="WhatsApp"
                         className="icon-img-l"
                       />
@@ -219,7 +219,7 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                   <NavItem
                     icon={
                       <img
-                        src="/assets/logout.svg"
+                        src="/Assets/logout.svg"
                         alt="Back"
                         className="icon-img-l"
                       />
@@ -273,7 +273,7 @@ const NavItem = ({ icon, text, onClick }) => (
       <span className="nav-icon">{icon}</span>
       <span>{text}</span>
     </div>
-    <img src="/assets/circleleft.svg" alt="Back" className="icon-img-l" />
+    <img src="/Assets/circleleft.svg" alt="Back" className="icon-img-l" />
   </div>
 );
 const NavItemExternal = ({ icon, text, href }) => (
@@ -282,7 +282,7 @@ const NavItemExternal = ({ icon, text, href }) => (
       <span className="nav-icon">{icon}</span>
       <span>{text}</span>
     </div>
-    <img src="/assets/circleleft.svg" alt="Back" className="icon-img-l" />
+    <img src="/Assets/circleleft.svg" alt="Back" className="icon-img-l" />
   </a>
 );
 

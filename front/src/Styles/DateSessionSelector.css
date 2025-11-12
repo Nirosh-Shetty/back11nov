@@ -18,6 +18,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  padding: 0 30px;
+  /* transition: all 33s ease; */
 }
 
 .nav-btn {
@@ -37,7 +39,7 @@
 /* Date scrolling strip */
 .date-strip {
   display: flex;
-  gap: 10px;
+  gap: 15px;
   overflow-x: auto;
   scroll-behavior: smooth;
   padding: 10px 0;
@@ -79,12 +81,12 @@
 }
 
 .date-card .date {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 500;
 }
 
 .date-card .weekday {
-  font-size: 12px;
+  font-size: 10px;
   opacity: 0.8;
 }
 

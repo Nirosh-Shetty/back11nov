@@ -12,7 +12,7 @@ const LegalPage = () => {
       {/* Header */}
       <div className="legal-header">
         <button onClick={() => navigate(-1)} className="legal-back-button">
-          <img src="/assets/checkoutback.svg" alt="Back" className="icon-img-l" style={{ transform: "scaleX(-1)" }} />
+          <img src="/Assets/checkoutback.svg" alt="Back" className="icon-img-l" style={{ transform: "scaleX(-1)" }} />
         </button>
         <h1 className="legal-title">About & Legal</h1>
       </div>
