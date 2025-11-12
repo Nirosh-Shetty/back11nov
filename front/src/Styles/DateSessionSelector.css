@@ -7,10 +7,12 @@
   width: 30%;
   margin: auto;
 }
+
 @media (max-width: 799px) {
   .date-session-wrapper {
     width: 100%;
-  }}
+  }
+}
 
 /* Header with scroll buttons */
 .date-header {
@@ -27,13 +29,25 @@
   border: none;
   font-size: 20px;
   cursor: pointer;
-  color: var(--copper-accents);
+  /* color: blue; */
   font-weight: bold;
+  /* transform: rotate(180deg); */
+  filter: invert(38%) sepia(100%) saturate(300%) hue-rotate(340deg) brightness(95%) contrast(90%);
   transition: opacity 0.3s;
 }
 
 .nav-btn:hover {
   opacity: 0.7;
+}
+
+/* nav button disabled/gray state */
+.nav-btn.disabled {
+  /* color: #9e9e9e; */
+  /* gray when cannot scroll further */
+  cursor: default;
+  opacity: 0.5;
+  pointer-events: none;
+  filter: none;
 }
 
 /* Date scrolling strip */
@@ -44,7 +58,7 @@
   scroll-behavior: smooth;
   padding: 10px 0;
   flex: 1;
-   -ms-overflow-style: none;
+  -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
@@ -72,6 +86,15 @@
   color: #fff;
   border: 1.5px solid var(--secondary-text);
   box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3);
+}
+
+.date-card.disabled {
+  opacity: 0.45;
+  pointer-events: none;
+  cursor: not-allowed;
+  /* filter: grayscale(20%); */
+  background: rgba(var(--secondary-text), 0.6);
+  border-color: var(--secondary-text)
 }
 
 .date-card .day {
@@ -113,6 +136,7 @@
   margin-top: 16px;
   /* gap: 10px; */
 }
+
 .session-btn-wrapper {
   /* flex:1; */
   background: none;
@@ -124,11 +148,17 @@
   border-top-right-radius: 10px;
   padding: 9px 9px 0 9px;
   transition: all 0.5s;
-  border-top:2px solid transparent;
+  border-top: 2px solid transparent;
 }
+
 .session-btn-wrapper.active {
   background: var(--cream-walls);
-    border-top: 2px solid var(--copper-accents);
+  border-top: 2px solid var(--copper-accents);
+}
+
+.session-btn-wrapper.disabled {
+  opacity: 0.6;
+  pointer-events: none;
 }
 
 .session {
@@ -148,6 +178,11 @@
   border: 1px solid var(--secondary-text);
 }
 
+.session.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .session .title {
   font-weight: 600;
   font-size: 14px;
@@ -157,4 +192,11 @@
   font-size: 10px;
   opacity: 0.8;
   line-height: 12px;
+}
+
+/* small visual hint when both sessions missing */
+.date-card.disabled .day,
+.date-card.disabled .date,
+.date-card.disabled .weekday {
+  color: var(--secondary-text);
 }

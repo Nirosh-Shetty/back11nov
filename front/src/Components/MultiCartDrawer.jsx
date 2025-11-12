@@ -5,6 +5,7 @@ import { FaAngleUp, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import "../Styles/MultiCartDrawer.css";
 import MyMeal from "../assets/mymeal.svg";
+import Swal2 from "sweetalert2";
 
 const MultiCartDrawer = ({
     groupedCarts,
@@ -50,14 +51,14 @@ const MultiCartDrawer = ({
         <>
             {/* small "All Slots" bubble above closed bar */}
             {isDrawerOpen || <>
-                <div className="all-slots-bubble" onClick={() => setIsDrawerOpen(true)}>
+                {groupedCarts.length>1 && <div className="all-slots-bubble" onClick={() => setIsDrawerOpen(true)}>
                     All Slots
-                    <span className="all-slots-triangle" />
-                </div>
+                    <img src="/Assets/arrowup.svg" />
+                </div>}
 
                 <div className="cartbutton">
                     <div className="cartbtn">
-                        <div className="d-flex justify-content-around align-items-center">
+                        <div className="d-flex justify-content-between align-items-center">
                             <div className="d-flex gap-1 align-items-center">
                                 {/* <p className="cart-slot-type">{SloteType}</p> */}
                                 <div className="cart-items-price">

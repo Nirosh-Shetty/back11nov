@@ -4,7 +4,7 @@ import "../../Styles/MenuUpload.css"; // Your CSS file
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-import axios from "axios"; // 1. Import axios
+import axios from "axios"; 
 
 // 2. Define ALL your API URLs
 const SAVE_API_URL = "http://localhost:7013/api/admin/hub-menu"; // This is for SAVING (from our plan)
@@ -413,6 +413,16 @@ const MenuUpload = () => {
 
         <div className="row">
           <div className="col-md-6 form-group">
+            <label>+ Select Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={menuDate}
+              onChange={(e) => setMenuDate(e.target.value)}
+              min={new Date().toISOString().split("T")[0]} // Today's date
+            />
+          </div>
+          <div className="col-md-6 form-group">
             <label>+ Select Session</label>
             <select
               className="form-control"
@@ -423,16 +433,6 @@ const MenuUpload = () => {
               <option value="Lunch">Lunch</option>
               <option value="Dinner">Dinner</option>
             </select>
-          </div>
-          <div className="col-md-6 form-group">
-            <label>+ Select Date</label>
-            <input
-              type="date"
-              className="form-control"
-              value={menuDate}
-              onChange={(e) => setMenuDate(e.target.value)}
-              min={new Date().toISOString().split("T")[0]} // Today's date
-            />
           </div>
         </div>
 

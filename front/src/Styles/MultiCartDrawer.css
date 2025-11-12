@@ -269,17 +269,10 @@ padding-bottom: 0 !important;
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size:16px
+  font-size:16px;
+  scale:0.7;
 }
-.all-slots-bubble .all-slots-triangle {
-  width: 0;
-  height: 0;
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-top: 8px solid #fff;
-  transform: translateY(2px);
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.08));
-}
+
 
 /* mobile responsiveness */
 @media (max-width: 420px) {
@@ -287,7 +280,7 @@ padding-bottom: 0 !important;
   .green-pill { padding: 8px; }
   .left-badge { padding: 6px 10px; font-size: 13px; }
   .pill-text { font-size: 13px; }
-  .all-slots-bubble { bottom: 88px; padding: 6px 10px; font-size: 13px; }
+  .all-slots-bubble { bottom: 8%; padding: 6px 10px; font-size: 13px; }
 }
 .mc-cartbtn *{
     font-family: 'Inter';

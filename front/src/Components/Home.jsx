@@ -1193,6 +1193,56 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
     )?.reduce((total, curr) => total + curr?.Quantity, 0);
   };
 
+  // Automatically remove today's Lunch/Dinner cart items after cutoff times
+  useEffect(() => {
+    if (!Carts || !setCarts) return;
+
+    const toKey = (date) => new Date(date).toISOString().slice(0, 10);
+    const cleanup = () => {
+      const now = new Date();
+      const todayKey = toKey(now);
+      const hr = now.getHours();
+
+      let removed = [];
+
+      // prepare filters
+      const shouldRemove = (item) => {
+        if (!item) return false;
+        // support multiple possible property names for date/session
+        const dateVal = item.deliveryDate || item.date || item.slotDate || item.deliveryDateString;
+        const sessionVal = (item.session || item.slotSession || item.mealSession || "").toString();
+        if (!dateVal || !sessionVal) return false;
+        const itemKey = toKey(dateVal);
+        if (itemKey !== todayKey) return false;
+        if (hr >= 19 && sessionVal.toLowerCase() === "dinner") return true;
+        if (hr >= 12 && sessionVal.toLowerCase() === "lunch") return true;
+        return false;
+      };
+
+      const newCarts = [];
+      Carts.forEach((it) => {
+        if (shouldRemove(it)) {
+          removed.push(it);
+        } else {
+          newCarts.push(it);
+        }
+      });
+
+      if (removed.length > 0) {
+        console.log("Auto-removed cart items due to session cutoff:", removed);
+        setCarts(newCarts);
+      }
+    };
+
+    // Run immediately and then every 5 minute
+    cleanup();
+    const id = setInterval(cleanup, 60 * 5000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Carts, setCarts]);
+
+
+
   return (
     <div>
       <ToastContainer />
@@ -1229,6 +1279,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
             onChange={handleSelectionChange}
             currentDate={selectedDate}
             currentSession={selectedSession}
+            menuData={allHubMenuData}
           />
         </div>
       </div>
