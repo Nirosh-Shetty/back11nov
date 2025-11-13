@@ -8,7 +8,12 @@
   gap: 8px;
   width: 100%;
   padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  /* border-bottom: 1px solid #eee; */
+  border-radius: 30px;
+  margin: 10px 0;
+  padding: 0 10px;
+  background: var(--cream-walls);
+  border: 1px solid var(--copper-accents);
 }
 
 .checkout-date-nav-btn {
@@ -36,7 +41,7 @@
 .checkout-date-nav-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  border-color: #e0e0e0;
+  border-color: var(--secondary-text);
 }
 
 .date-strip-scroller {
@@ -56,8 +61,8 @@
 
 .date-card-checkout {
   flex-shrink: 0;
-  background: #fff;
-  border: 1.5px solid #d9d9d9;
+  background: var(--app-foreground, #fff);
+  border: 1px solid var(--copper-accents);
   border-radius: 12px;
   padding: 8px 16px;
   text-align: center;
@@ -68,10 +73,19 @@
 }
 
 .date-card-checkout.active {
-  background: #a25320;
-  color: #fff;
-  border-color: #a25320;
-  box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3);
+  background: var(--copper-accents);
+  color: var(--app-foreground);
+  border-color: var(--secondary-text);
+  /* box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3); */
+}
+
+/* --- ADD THIS NEW STYLE --- */
+.date-card-checkout.disabled {
+  color: var(--secondary-text);
+  border-color: var(--secondary-text);
+  cursor: not-allowed;
+  opacity: 0.8;
+  border-color: var(--secondary-text);
 }
 
 .date-card-checkout .day {
@@ -90,26 +104,56 @@
   gap: 10px;
   margin-bottom: 16px;
   padding: 0 10px;
+  width:100%;
+      display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.checkout-session-btn-wrapper {
+  /* flex: 1; */
+  width: 50%;
+  padding: 8px 8px 0 8px;
+  border-radius: 15px;
+}
+.checkout-session-btn-wrapper.active {
+ border-top: var(--copper-accents) 2px solid;
+  background-color: var(--warm-marble);
 }
 
 .checkout-session-btn {
-  flex: 1;
+  font-family: "Inter", sans-serif;
+  /* flex: 1; */
   padding: 12px;
   font-size: 1rem;
   font-weight: 600;
   text-align: center;
-  border: 1.5px solid #d9d9d9;
+  border: 1.5px solid var(--copper-accents);
   border-radius: 12px;
-  background-color: #fff;
-  color: #a25320;
+  background-color: var(--light-marble);
+  color: var(--primary-text);
   cursor: pointer;
   transition: all 0.3s ease;
+  width: 100%;
+  display: flex;
+  flex-direction:column;
+  align-items: center;
+  justify-content: center;
+  /* gap:5px */
+}
+
+.checkout-session-btn span:first-child {
+  font-size: 14px;
+  font-weight: bold;
+}
+ .checkout-session-btn span:last-child {
+  font-size: 10px;
+  font-weight: regular;
 }
 
 .checkout-session-btn.active {
-  background: #a25320;
-  color: #fff;
-  border-color: #a25320;
+  background: var(--copper-accents);
+  color: var(--app-foreground);
+  border-color: var(--secondary-text);
 }
 
 .checkout-session-btn:disabled {
