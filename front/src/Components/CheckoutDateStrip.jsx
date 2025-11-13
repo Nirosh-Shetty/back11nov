@@ -1,14 +1,12 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import "../Styles/CheckoutDateStrip.css"; // Import the new CSS
 
-// Helper function to get the next 7 days
 const getNextSevenDays = () => {
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const result = [];
   const today = new Date();
 
   for (let i = 0; i < 7; i++) {
-    // Create a new Date object in UTC
     const date = new Date(
       Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + i)
     );
