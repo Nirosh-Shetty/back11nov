@@ -1,6 +1,3 @@
-/*
- * This file is at: src/Components/CheckoutDateStrip.jsx
- */
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import "../Styles/CheckoutDateStrip.css"; // Import the new CSS
 
