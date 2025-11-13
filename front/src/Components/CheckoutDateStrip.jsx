@@ -70,7 +70,7 @@ const CheckoutDateStrip = ({
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  
+
   // Generate the 7 days to display
   const displayDates = useMemo(() => getNextSevenDays(), []);
 
@@ -107,24 +107,27 @@ const CheckoutDateStrip = ({
   return (
     <div className="checkout-date-strip-container">
       <button
-        className="checkout-date-nav-btn"
+        // className="checkout-date-nav-btn"
+        className={`nav-btn ${!canScrollLeft ? "disabled" : ""}`}
+
         onClick={() => scroll("left")}
         disabled={!canScrollLeft}
       >
-        <ArrowLeft />
+        {/* <ArrowLeft /> */}
+        <img src="/Assets/circleleft.svg" style={{ transform: "rotate(180deg)" }} alt="prev" />
+
       </button>
 
       <div className="date-strip-scroller" ref={scrollRef}>
         {displayDates.map((d) => {
           // Check if this date exists in the cart
           const hasCartItems = cartDates.has(d.dateKey);
-          
+
           return (
             <div
               key={d.dateKey}
-              className={`date-card-checkout ${
-                d.dateKey === activeDateKey ? "active" : ""
-              } ${!hasCartItems ? "disabled" : ""}`}
+              className={`date-card-checkout ${d.dateKey === activeDateKey ? "active" : ""
+                } ${!hasCartItems ? "disabled" : ""}`}
               onClick={() => {
                 // Only allow selection if it's not disabled
                 if (hasCartItems) {
@@ -132,19 +135,21 @@ const CheckoutDateStrip = ({
                 }
               }}
             >
-              <div className="day">{d.label}</div>
               <div className="date">{d.displayDate}</div>
+              <div className="day">{d.label}</div>
             </div>
           );
         })}
       </div>
 
       <button
-        className="checkout-date-nav-btn"
+        // className="checkout-date-nav-btn"
+        className={`nav-btn ${!canScrollRight ? "disabled" : ""}`}
         onClick={() => scroll("right")}
         disabled={!canScrollRight}
       >
-        <ArrowRight />
+        {/* <ArrowRight /> */}
+        <img src="/Assets/circleleft.svg" alt="next" />
       </button>
     </div>
   );

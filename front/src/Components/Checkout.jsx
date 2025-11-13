@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import { Button, Form, Modal, Spinner } from "react-bootstrap";
 import { MdRemoveShoppingCart } from "react-icons/md";
 import "../Styles/Checkout.css";
@@ -101,6 +101,39 @@ const Checkout = () => {
 
   const Carts = JSON.parse(localStorage.getItem("cart")) || [];
   const [cartdata, setCartData] = useState([]);
+  // small ref to avoid repeated JSON.parse when nothing changed
+  const lastCartRawRef = useRef(null);
+
+  // Sync cartdata with localStorage:
+  // - read on mount
+  // - poll (1s) for same-tab updates (storage event doesn't fire in same tab)
+  // - listen to storage event for other tabs
+  useEffect(() => {
+    const readCart = () => {
+      try {
+        const raw = localStorage.getItem("cart") || "[]";
+        if (raw !== lastCartRawRef.current) {
+          lastCartRawRef.current = raw;
+          const parsed = JSON.parse(raw);
+          setCartData(Array.isArray(parsed) ? parsed : []);
+        }
+      } catch (err) {
+        console.error("Failed to parse cart from localStorage", err);
+      }
+    };
+
+    readCart();
+    const intervalId = setInterval(readCart, 1000);
+    const onStorage = (e) => {
+      if (e.key === "cart") readCart();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
   const user = JSON.parse(localStorage.getItem("user"));
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [showFAQModal, setShowFAQModal] = useState(false);
@@ -142,6 +175,7 @@ const Checkout = () => {
   const getcartData = () => {
     const getc = JSON.parse(localStorage.getItem("cart")) || [];
     setCartData(getc);
+    console.log(getc)
   };
 
   useEffect(() => {
@@ -763,11 +797,9 @@ const Checkout = () => {
           delivarytype: Number(delivarychargetype || 0),
           deliveryMethod: deliveryMethod || "slot",
           payid: "pay001",
-          addressline: `${address?.name} ${
-            addresstype === "apartment" ? `${address?.flatno},` : ""
-          } ${addresstype === "apartment" ? `${address?.towerName},` : ""} ${
-            address?.mobilenumber
-          }`,
+          addressline: `${address?.name} ${addresstype === "apartment" ? `${address?.flatno},` : ""
+            } ${addresstype === "apartment" ? `${address?.towerName},` : ""} ${address?.mobilenumber
+            }`,
           status: "Cooking",
           approximatetime:
             deliveryMethod === "express"
@@ -1236,7 +1268,7 @@ const Checkout = () => {
       user?.status == "Employee"
         ? false
         : calculateTaxPrice + subtotal + Cutlery <=
-          walletSeting.minCartValueForWallet
+        walletSeting.minCartValueForWallet
     ) {
       Swal2.fire({
         toast: true,
@@ -1321,6 +1353,24 @@ const Checkout = () => {
     setIsBillingOpen(!isBillingOpen);
   };
 
+  // Clear all cart items for the active date+session (Delete slot)
+  const clearSlot = () => {
+    if (!activeDateKey || !activeSession) return;
+    const removed = cartdata.filter(
+      (it) => it.deliveryDate === activeDateKey && it.session === activeSession
+    );
+    if (removed.length === 0) return;
+    const newCart = cartdata.filter(
+      (it) => !(it.deliveryDate === activeDateKey && it.session === activeSession)
+    );
+    localStorage.setItem("cart", JSON.stringify(newCart));
+    // update local state immediately
+    setCartData(newCart);
+    // optional: let other listeners know
+    try { window.dispatchEvent(new Event("cart_updated")); } catch(e){/* noop */ }
+    console.log("Cleared slot items:", removed);
+  };
+
   return (
     <div className="mainbg">
       <div className="checkoutcontainer">
@@ -1363,35 +1413,48 @@ const Checkout = () => {
             }}
           />
 
+          {/* Delete slot button (shows number of distinct items in the active slot) */}
+          <div className="delete-slot-wrapper">
+            <button
+              onClick={clearSlot}
+              disabled={
+                !activeDateKey ||
+                !activeSession ||
+                cartdata.filter((it) => it.deliveryDate === activeDateKey && it.session === activeSession).length === 0
+              }
+              className="delete-slot-button"
+            >
+              Delete slot ({cartdata.filter((it) => it.deliveryDate === activeDateKey && it.session === activeSession).length} items)
+            </button>
+          </div>
+
           <div className="checkoutcontainer">
             <div class="cart-container">
               <div class="cart-section">
                 <div class="cart-content">
                   <div className="checkout-session-selector">
-                  <div className={`checkout-session-btn-wrapper ${
-                        activeSession === "Lunch" ? "active" : ""}`}>
-                    <button
-                      className={`checkout-session-btn ${
-                        activeSession === "Lunch" ? "active" : ""
-                      }`}
-                      onClick={() => setActiveSession("Lunch")}
-                      disabled={!sessionsForActiveDate.includes("Lunch")}
-                    >
-                     <span>Lunch</span>
-                      <span>12:00pm to 04:00pm</span>
-                    </button>
+                    <div className={`checkout-session-btn-wrapper ${activeSession === "Lunch" ? "active" : ""}`}>
+                      <button
+                        className={`checkout-session-btn ${activeSession === "Lunch" ? "active" : ""
+                          }`}
+                        onClick={() => setActiveSession("Lunch")}
+                        disabled={!sessionsForActiveDate.includes("Lunch")}
+                      >
+                        <span>Lunch</span>
+                        <span>12:00pm to 04:00pm</span>
+                      </button>
                     </div>
-                    <div className="checkout-session-btn-wrapper">
-                    <button
-                      className={`checkout-session-btn ${
-                        activeSession === "Dinner" ? "active" : ""
-                      }`}
-                      onClick={() => setActiveSession("Dinner")}
-                      disabled={!sessionsForActiveDate.includes("Dinner")}
-                    >
-                      <span>Dinner</span>
-                      <span>06:00pm to 08:00pm</span>
-                    </button>
+                    <div className={`checkout-session-btn-wrapper  ${activeSession === "Dinner" ? "active" : ""
+                      }`}>
+                      <button
+                        className={`checkout-session-btn ${activeSession === "Dinner" ? "active" : ""
+                          }`}
+                        onClick={() => setActiveSession("Dinner")}
+                        disabled={!sessionsForActiveDate.includes("Dinner")}
+                      >
+                        <span>Dinner</span>
+                        <span>06:00pm to 08:00pm</span>
+                      </button>
                     </div>
                   </div>
                   <div class="cart-header">
@@ -1617,9 +1680,8 @@ const Checkout = () => {
                 {addresstype === "apartment" ? (
                   <>
                     <div
-                      className={`leftcard ${
-                        selectedOption === "Door" ? "active" : ""
-                      }`}
+                      className={`leftcard ${selectedOption === "Door" ? "active" : ""
+                        }`}
                       onClick={() =>
                         handleSelection(address?.doordelivarycharge, "Door")
                       }
@@ -1658,9 +1720,8 @@ const Checkout = () => {
                       </div>
                     </div>
                     <div
-                      className={`rightcard ${
-                        selectedOption === "Gate/Tower" ? "active" : ""
-                      }`}
+                      className={`rightcard ${selectedOption === "Gate/Tower" ? "active" : ""
+                        }`}
                       onClick={() =>
                         handleSelection(address?.Delivarycharge, "Gate/Tower")
                       }
@@ -1701,9 +1762,8 @@ const Checkout = () => {
                   </>
                 ) : (
                   <div
-                    className={`rightcard ${
-                      selectedOption === "Gate/Tower" ? "active" : ""
-                    }`}
+                    className={`rightcard ${selectedOption === "Gate/Tower" ? "active" : ""
+                      }`}
                     onClick={() =>
                       handleSelection(address?.Delivarycharge, "Gate/Tower")
                     }
@@ -1764,39 +1824,6 @@ const Checkout = () => {
                     fill="none"
                   >
                     <path
-                      d="M5.92773 1.05176C7.2033 0.630423 8.5611 0.517405 9.88867 0.722656C11.2161 0.927937 12.4758 1.44566 13.5645 2.23242C14.6532 3.0193 15.5399 4.05387 16.1514 5.25C16.7627 6.44603 17.0818 7.77007 17.082 9.11328C17.082 10.8912 16.5358 12.5395 15.6035 13.9023L15.4121 14.1709L9.85254 21.582L8.58984 23.2637L7.32812 21.582L1.76953 14.1709C0.969689 13.0919 0.437164 11.8384 0.21582 10.5137C-0.0054937 9.18868 0.0912114 7.8294 0.49707 6.54883C0.902943 5.26836 1.60672 4.10204 2.55078 3.14648C3.49486 2.19097 4.65227 1.47306 5.92773 1.05176ZM9.59277 2.64648C8.57019 2.48805 7.52473 2.57535 6.54199 2.89941C5.55903 3.2236 4.66631 3.7758 3.93848 4.51172C3.21077 5.24753 2.66781 6.14552 2.35449 7.13184C2.04118 8.11832 1.96689 9.16551 2.13672 10.1865C2.28532 11.0799 2.61714 11.9313 3.11035 12.6875L3.33203 13.0059L8.51074 19.9121L8.59082 20.0186L8.6709 19.9121L13.8496 13.0059C14.6862 11.8808 15.1368 10.5153 15.1338 9.11328C15.1338 8.07824 14.8889 7.05747 14.418 6.13574C13.9471 5.21414 13.2644 4.41705 12.4258 3.81055C11.5871 3.20399 10.6156 2.80503 9.59277 2.64648ZM8.59082 6.34961C9.32378 6.34961 10.0266 6.6409 10.5449 7.15918C11.0632 7.67746 11.3545 8.38032 11.3545 9.11328C11.3545 9.8462 11.0632 10.5491 10.5449 11.0674C10.0266 11.5856 9.32374 11.877 8.59082 11.877C7.8579 11.8769 7.15498 11.5856 6.63672 11.0674C6.11846 10.5491 5.82718 9.8462 5.82715 9.11328C5.82715 8.38037 6.1185 7.67745 6.63672 7.15918C7.15498 6.64092 7.85789 6.34963 8.59082 6.34961Z"
-                      fill="#2C2C2C"
-                      stroke="white"
-                      stroke-width="0.2"
-                    />
-                  </svg>
-                </div>
-                <div class="user-infos">
-                  <div class="heading-section">
-                    <div class="user-namess">{address?.apartmentname}</div>
-                  </div>
-                  <div class="caption-section" data-text-role="Caption">
-                    <div class="user-detailss">
-                      {address?.name || address?.Fname} | {user.Mobile}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="content-section">
-                <div class="change-button">
-                  <div class="change-icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                    >
-                      <path
-                        d="M12.7869 4.06006C13.0026 4.06408 13.197 4.13649 13.3679 4.27393L13.4402 4.3374L13.4421 4.33936L14.0691 4.96729H14.0701C14.2584 5.15512 14.3562 5.37816 14.3562 5.63135C14.3561 5.88443 14.2583 6.10722 14.0701 6.29541L8.06909 12.2964L8.12964 12.356L7.97827 12.3872L7.92847 12.437L7.89526 12.4038L6.14429 12.7642L6.14331 12.7632C5.99732 12.7977 5.86495 12.7583 5.75757 12.6509C5.6507 12.5438 5.61079 12.4117 5.64526 12.2661L6.00366 10.5142L5.97144 10.4819L6.02124 10.4312L6.05249 10.2798L6.11304 10.3394L12.1277 4.33936C12.3159 4.15164 12.537 4.05551 12.7869 4.06006ZM3.90894 4.93896C4.82094 5.04553 5.51534 5.25975 5.98022 5.59033L6.14624 5.72217C6.50712 6.04333 6.68917 6.46017 6.68921 6.96631C6.68921 7.46798 6.48149 7.87559 6.07202 8.18018C5.66644 8.48179 5.09567 8.65629 4.37183 8.71533L4.3728 8.71631C3.56599 8.78862 2.97488 8.95356 2.58765 9.20166C2.20735 9.44537 2.02278 9.7739 2.02319 10.1958L2.03003 10.3452C2.06267 10.6821 2.20957 10.9385 2.46753 11.1235C2.76926 11.3398 3.255 11.4829 3.93921 11.5415L4.03296 11.5493L4.03101 11.6431L4.01538 12.3101L4.01245 12.4146L3.90894 12.4077C3.02682 12.3515 2.34286 12.14 1.86987 11.7622C1.39341 11.3812 1.15698 10.8553 1.15698 10.1958C1.15698 9.53364 1.4429 8.99511 2.00562 8.5874C2.56435 8.18297 3.33478 7.93994 4.3064 7.8501C4.8365 7.80039 5.22055 7.69624 5.46948 7.54639C5.71114 7.40131 5.823 7.21012 5.823 6.96631C5.82295 6.63775 5.67929 6.38651 5.37964 6.20361C5.07099 6.01541 4.55566 5.87468 3.82104 5.7915L3.72241 5.78076L3.73218 5.68213L3.79761 5.02881L3.80835 4.92725L3.90894 4.93896ZM12.7771 4.99463C12.7176 4.99466 12.671 5.01448 12.6306 5.05518H12.6296L7.20581 10.4771L7.9314 11.2026L13.3542 5.78076C13.3953 5.73967 13.4148 5.69221 13.4148 5.6333C13.4148 5.58902 13.4041 5.55139 13.3816 5.51807L13.3552 5.48584L12.9236 5.05518C12.883 5.01429 12.8361 4.99463 12.7771 4.99463Z"
-                        fill="#6B6B6B"
-                        stroke="#6B6B6B"
-                        stroke-width="0.2"
                       />
                     </svg>
                   </div>
@@ -2138,9 +2165,9 @@ const Checkout = () => {
                         Math.min(
                           walletSeting?.minCartValueForWallet || 0,
                           (walletSeting?.minCartValueForWallet || 0) -
-                            (Number(calculateTaxPrice) +
-                              Number(subtotal) +
-                              Number(Cutlery) || 0)
+                          (Number(calculateTaxPrice) +
+                            Number(subtotal) +
+                            Number(Cutlery) || 0)
                         )
                       )}{" "}
                       more to use
@@ -2161,9 +2188,8 @@ const Checkout = () => {
                 <img
                   src="/Assets/expanddown.svg"
                   alt="Toggle"
-                  className={`expandable-chevron ${
-                    isBillingOpen ? "open" : ""
-                  }`}
+                  className={`expandable-chevron ${isBillingOpen ? "open" : ""
+                    }`}
                 />
               </span>
             </span>
@@ -2317,7 +2343,7 @@ const Checkout = () => {
             </Button>
           </div>
         </div>
-      </div>
+      </div >
 
       <Modal show={show} style={{ zIndex: "99999" }}>
         <Modal.Header>
@@ -2514,179 +2540,181 @@ const Checkout = () => {
       </Modal>
 
       {/* Modal */}
-      {showModal && (
-        <div
-          className="modal show fade d-block"
-          tabIndex="-1"
-          role="dialog"
-          style={{
-            backgroundColor: "rgba(0,0,0,0.5)",
-            boxShadow: "1px 0px 4px 0px #00000040",
-          }}
-        >
+      {
+        showModal && (
           <div
-            className="modal-dialog"
-            role="document"
+            className="modal show fade d-block"
+            tabIndex="-1"
+            role="dialog"
             style={{
-              maxWidth: window.innerWidth > 768 ? "605px" : "402px", // ✅ Responsive width
-              height: "auto",
-              margin: "auto",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              boxShadow: "1px 0px 4px 0px #00000040",
             }}
           >
             <div
-              className="modal-content"
+              className="modal-dialog"
+              role="document"
               style={{
-                backgroundColor: "#F8F6F0",
-                borderRadius: "16px",
-                padding: window.innerWidth > 768 ? "30px 40px" : "20px", // ✅ More padding on large screen
+                maxWidth: window.innerWidth > 768 ? "605px" : "402px", // ✅ Responsive width
+                height: "auto",
+                margin: "auto",
               }}
             >
-              <p
+              <div
+                className="modal-content"
                 style={{
-                  fontSize: window.innerWidth > 768 ? "14px" : "13px",
-                  marginBottom: "12px",
-                  textAlign: "start",
-                  color: "#6B6B6B",
-                  padding: "15px",
+                  backgroundColor: "#F8F6F0",
+                  borderRadius: "16px",
+                  padding: window.innerWidth > 768 ? "30px 40px" : "20px", // ✅ More padding on large screen
                 }}
               >
-                <ShieldAlert
-                  style={{ width: "13px", height: "13px" }}
-                  className="mb-1"
-                />{" "}
-                Safe & private: details are only used to deliver correctly.
-              </p>
-
-              <form onSubmit={handleSubmit}>
-                <div
-                  className="d-flex flex-column align-items-center mt-2"
+                <p
                   style={{
-                    gap: "12px",
-                    backgroundColor: "#FFF8DC",
-                    padding: "20px",
-                    borderRadius: "12px",
-                    border: "0.4px solid #B87333",
-                    width: "100%",
-                    maxWidth: window.innerWidth > 768 ? "500px" : "354px", // ✅ Keep consistent alignment
-                    margin: "0 auto",
+                    fontSize: window.innerWidth > 768 ? "14px" : "13px",
+                    marginBottom: "12px",
+                    textAlign: "start",
+                    color: "#6B6B6B",
+                    padding: "15px",
                   }}
                 >
-                  {/* Student Name */}
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Student’s full name *"
-                    value={childName}
-                    onChange={(e) => setChildName(e.target.value)}
-                    required
-                    style={{
-                      width: "100%", // ✅ auto adjusts for both screens
-                      height: "44px",
-                      borderRadius: "12px",
-                      padding: "8px 16px",
-                      border: "0.4px solid #6B8E23",
-                    }}
-                  />
+                  <ShieldAlert
+                    style={{ width: "13px", height: "13px" }}
+                    className="mb-1"
+                  />{" "}
+                  Safe & private: details are only used to deliver correctly.
+                </p>
 
-                  {/* Class and Section Row */}
+                <form onSubmit={handleSubmit}>
                   <div
-                    className="d-flex justify-content-between"
+                    className="d-flex flex-column align-items-center mt-2"
                     style={{
-                      width: "100%", // ✅ uniform width for both inputs
                       gap: "12px",
+                      backgroundColor: "#FFF8DC",
+                      padding: "20px",
+                      borderRadius: "12px",
+                      border: "0.4px solid #B87333",
+                      width: "100%",
+                      maxWidth: window.innerWidth > 768 ? "500px" : "354px", // ✅ Keep consistent alignment
+                      margin: "0 auto",
                     }}
                   >
+                    {/* Student Name */}
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Class/ Room number *"
-                      value={childClass}
-                      onChange={(e) => setChildClass(e.target.value)}
+                      placeholder="Student’s full name *"
+                      value={childName}
+                      onChange={(e) => setChildName(e.target.value)}
                       required
                       style={{
-                        flex: 1, // ✅ both inputs share space evenly
+                        width: "100%", // ✅ auto adjusts for both screens
                         height: "44px",
                         borderRadius: "12px",
                         padding: "8px 16px",
                         border: "0.4px solid #6B8E23",
                       }}
                     />
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="Section *"
-                      value={childSection}
-                      onChange={(e) => setChildSection(e.target.value)}
-                      required
+
+                    {/* Class and Section Row */}
+                    <div
+                      className="d-flex justify-content-between"
                       style={{
-                        flex: 1,
-                        height: "44px",
-                        borderRadius: "12px",
-                        padding: "8px 16px",
-                        border: "0.4px solid #6B8E23",
+                        width: "100%", // ✅ uniform width for both inputs
+                        gap: "12px",
                       }}
-                    />
+                    >
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Class/ Room number *"
+                        value={childClass}
+                        onChange={(e) => setChildClass(e.target.value)}
+                        required
+                        style={{
+                          flex: 1, // ✅ both inputs share space evenly
+                          height: "44px",
+                          borderRadius: "12px",
+                          padding: "8px 16px",
+                          border: "0.4px solid #6B8E23",
+                        }}
+                      />
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Section *"
+                        value={childSection}
+                        onChange={(e) => setChildSection(e.target.value)}
+                        required
+                        style={{
+                          flex: 1,
+                          height: "44px",
+                          borderRadius: "12px",
+                          padding: "8px 16px",
+                          border: "0.4px solid #6B8E23",
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Footer Buttons */}
-                <div
-                  className="d-flex justify-content-between align-items-center mt-4"
-                  style={{
-                    padding: window.innerWidth > 768 ? "0 15px" : "0 10px",
-                  }}
-                >
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => setShowModal(false)}
+                  {/* Footer Buttons */}
+                  <div
+                    className="d-flex justify-content-between align-items-center mt-4"
                     style={{
-                      backgroundColor: "transparent",
-                      border: "1px solid #d5c5b0",
-                      borderRadius: "12px",
-                      width: window.innerWidth > 768 ? "160px" : "120px",
-                      height: "48px",
-                      fontWeight: "600",
-                      textAlign: "center",
+                      padding: window.innerWidth > 768 ? "0 15px" : "0 10px",
                     }}
                   >
-                    Cancel <img src={cross} alt="" />
-                  </button>
+                    <button
+                      type="button"
+                      className="btn"
+                      onClick={() => setShowModal(false)}
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid #d5c5b0",
+                        borderRadius: "12px",
+                        width: window.innerWidth > 768 ? "160px" : "120px",
+                        height: "48px",
+                        fontWeight: "600",
+                        textAlign: "center",
+                      }}
+                    >
+                      Cancel <img src={cross} alt="" />
+                    </button>
 
-                  <button
-                    type="submit"
-                    className="btn"
-                    style={{
-                      backgroundColor:
-                        childName && childClass && childSection
-                          ? "#E6B800"
-                          : "#C0C0C0",
-                      borderRadius: "12px",
-                      textAlign: "center",
-                      width: window.innerWidth > 768 ? "200px" : "160px",
-                      height: "48px",
-                      fontWeight: "600",
-                      color:
-                        childName && childClass && childSection
-                          ? "black"
-                          : "black",
-                      cursor:
-                        childName && childClass && childSection
-                          ? "pointer"
-                          : "not-allowed",
-                    }}
-                    disabled={!childName || !childClass || !childSection}
-                  >
-                    Save Address{" "}
-                    <CircleCheck style={{ width: "17px", height: "17px" }} />
-                  </button>
-                </div>
-              </form>
+                    <button
+                      type="submit"
+                      className="btn"
+                      style={{
+                        backgroundColor:
+                          childName && childClass && childSection
+                            ? "#E6B800"
+                            : "#C0C0C0",
+                        borderRadius: "12px",
+                        textAlign: "center",
+                        width: window.innerWidth > 768 ? "200px" : "160px",
+                        height: "48px",
+                        fontWeight: "600",
+                        color:
+                          childName && childClass && childSection
+                            ? "black"
+                            : "black",
+                        cursor:
+                          childName && childClass && childSection
+                            ? "pointer"
+                            : "not-allowed",
+                      }}
+                      disabled={!childName || !childClass || !childSection}
+                    >
+                      Save Address{" "}
+                      <CircleCheck style={{ width: "17px", height: "17px" }} />
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

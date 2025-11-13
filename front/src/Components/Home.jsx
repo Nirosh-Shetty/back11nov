@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState, useRef } from "react";
 import { Container } from "react-bootstrap";
 import { FaEye, FaEyeSlash, FaLock, FaUser, FaAngleUp } from "react-icons/fa";
 import { Button, Form, InputGroup, Modal } from "react-bootstrap";
@@ -1240,6 +1240,38 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [Carts, setCarts]);
+
+  // Sync cart from localStorage so Checkout <-> Home stay in sync
+  const lastCartRawRef = useRef(null);
+  useEffect(() => {
+    const readCart = () => {
+      try {
+        const raw = localStorage.getItem("cart") || "[]";
+        if (raw !== lastCartRawRef.current) {
+          lastCartRawRef.current = raw;
+          const parsed = JSON.parse(raw);
+          // update both parent and local states
+          setCarts(Array.isArray(parsed) ? parsed : []);
+          setCart(Array.isArray(parsed) ? parsed : []);
+        }
+      } catch (err) {
+        console.error("cart sync error", err);
+      }
+    };
+
+    readCart();
+    const intervalId = setInterval(readCart, 1000); // same-tab updates
+    const onStorage = (e) => { if (e.key === "cart") readCart(); }; // other tabs
+    const onCartUpdated = () => readCart(); // custom event from Checkout
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("cart_updated", onCartUpdated);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("cart_updated", onCartUpdated);
+    };
+  }, [setCarts]);
 
 
 

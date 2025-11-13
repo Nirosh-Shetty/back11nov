@@ -102,22 +102,28 @@
 .checkout-session-selector {
   display: flex;
   gap: 10px;
-  margin-bottom: 16px;
-  padding: 0 10px;
+  /* margin-bottom: 16px; */
+  /* padding: 0 10px; */
   width:100%;
       display: flex;
     align-items: center;
     justify-content: center;
+    background-color: var(--cream-walls);
 }
 .checkout-session-btn-wrapper {
   /* flex: 1; */
   width: 50%;
-  padding: 8px 8px 0 8px;
-  border-radius: 15px;
+  padding: 8px;
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  margin-top: 10px;
+  background-color: var(--cream-walls);
+  border-top: solid 2px transparent;
+  transition: all 0.3s ease;
 }
 .checkout-session-btn-wrapper.active {
- border-top: var(--copper-accents) 2px solid;
-  background-color: var(--warm-marble);
+ border-color: var(--copper-accents);;
+ background-color:var(--app-foreground)
 }
 
 .checkout-session-btn {
@@ -129,7 +135,7 @@
   text-align: center;
   border: 1.5px solid var(--copper-accents);
   border-radius: 12px;
-  background-color: var(--light-marble);
+  background-color: var(--app-foreground);
   color: var(--primary-text);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -162,4 +168,19 @@
   border-color: #eee;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.delete-slot-wrapper{
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  width:100%;
+  padding: 3px 10px;
+}
+
+.delete-slot-button {
+  color: var(--copper-accents);
+  border: none;
+  cursor: pointer;
+  /* font-weight: 600; */
 }
