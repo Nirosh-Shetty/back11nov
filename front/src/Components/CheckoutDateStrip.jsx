@@ -1,8 +1,33 @@
 /*
- * Create this file at: src/Components/CheckoutDateStrip.jsx
+ * This file is at: src/Components/CheckoutDateStrip.jsx
  */
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import "../Styles/CheckoutDateStrip.css"; // Import the new CSS
+
+// Helper function to get the next 7 days
+const getNextSevenDays = () => {
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const result = [];
+  const today = new Date();
+
+  for (let i = 0; i < 7; i++) {
+    // Create a new Date object in UTC
+    const date = new Date(
+      Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + i)
+    );
+
+    const label =
+      i === 0 ? "Today" : i === 1 ? "Tomorrow" : days[date.getUTCDay()];
+
+    result.push({
+      label,
+      displayDate: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      dateKey: date.toISOString(), // The full UTC date string, e.g., "2025-11-09T00:00:00.000Z"
+    });
+  }
+  return result;
+};
+
 
 // Simple SVG for arrows
 const ArrowLeft = () => (
@@ -37,10 +62,17 @@ const ArrowRight = () => (
   </svg>
 );
 
-const CheckoutDateStrip = ({ dates, activeDateKey, onDateSelect }) => {
+const CheckoutDateStrip = ({
+  cartDates, // This is a Set of date strings
+  activeDateKey,
+  onDateSelect,
+}) => {
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  
+  // Generate the 7 days to display
+  const displayDates = useMemo(() => getNextSevenDays(), []);
 
   const checkScroll = () => {
     const el = scrollRef.current;
@@ -63,7 +95,7 @@ const CheckoutDateStrip = ({ dates, activeDateKey, onDateSelect }) => {
         window.removeEventListener("resize", checkScroll);
       }
     };
-  }, [dates]);
+  }, [displayDates]);
 
   const scroll = (direction) => {
     if (scrollRef.current) {
@@ -83,18 +115,28 @@ const CheckoutDateStrip = ({ dates, activeDateKey, onDateSelect }) => {
       </button>
 
       <div className="date-strip-scroller" ref={scrollRef}>
-        {dates.map((d) => (
-          <div
-            key={d.dateKey}
-            className={`date-card-checkout ${
-              d.dateKey === activeDateKey ? "active" : ""
-            }`}
-            onClick={() => onDateSelect(d.dateKey)}
-          >
-            <div className="day">{d.label}</div>
-            <div className="date">{d.displayDate}</div>
-          </div>
-        ))}
+        {displayDates.map((d) => {
+          // Check if this date exists in the cart
+          const hasCartItems = cartDates.has(d.dateKey);
+          
+          return (
+            <div
+              key={d.dateKey}
+              className={`date-card-checkout ${
+                d.dateKey === activeDateKey ? "active" : ""
+              } ${!hasCartItems ? "disabled" : ""}`}
+              onClick={() => {
+                // Only allow selection if it's not disabled
+                if (hasCartItems) {
+                  onDateSelect(d.dateKey);
+                }
+              }}
+            >
+              <div className="day">{d.label}</div>
+              <div className="date">{d.displayDate}</div>
+            </div>
+          );
+        })}
       </div>
 
       <button

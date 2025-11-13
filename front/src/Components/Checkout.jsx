@@ -1,26 +1,24 @@
 import { useContext, useEffect, useMemo, useState } from "react";
-// import { FaPlus, FaMinus } from "react-icons/fa6";
 import { Button, Form, Modal, Spinner } from "react-bootstrap";
-// import { RxCross2 } from "react-icons/rx";
 import { MdRemoveShoppingCart } from "react-icons/md";
 import "../Styles/Checkout.css";
 import { FaCheck } from "react-icons/fa";
 import { PiWarningCircleBold } from "react-icons/pi";
 import { useNavigate, useLocation, Link } from "react-router-dom";
-// import { MdOutlineEditLocationAlt } from "react-icons/md";
 import axios from "axios";
-// import swal from "sweetalert";
-// import moment from "moment";
 import { WalletContext } from "../WalletContext";
 import { BiSolidOffer } from "react-icons/bi";
 import Swal2 from "sweetalert2";
-// import DeliverySlots from './DeliverySlots';
 import IsVeg from "../assets/isVeg=yes.svg";
 import IsNonVeg from "../assets/isVeg=no.svg";
 import "../Styles/Normal.css";
 import { CircleCheck, ShieldAlert } from "lucide-react";
-import cross from "./../assets/cross.png";
-import CheckoutDateStrip  from "./CheckoutDateStrip";
+import cross from "../assets/cross.png";
+
+// --- NEW: Import the new component and its CSS ---
+import CheckoutDateStrip from "./CheckoutDateStrip";
+import "../Styles/CheckoutDateStrip.css"; // Make sure this CSS file exists
+// --- END NEW ---
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -28,21 +26,18 @@ const Checkout = () => {
   const location = useLocation();
   const data = location?.state;
   const addresstype = localStorage.getItem("addresstype");
- const [address, setAddress] = useState(
-    JSON.parse(localStorage.getItem(
-      addresstype === "apartment" ? "address" : "coporateaddress"
-    )) || {}
+  const [address, setAddress] = useState(
+    JSON.parse(
+      localStorage.getItem(
+        addresstype === "apartment" ? "address" : "coporateaddress"
+      )
+    ) || {}
   );
-  const [activeSlotKey, setActiveSlotKey] = useState(null);
-const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T00:00:00.000Z"
+
+  // --- NEW: State for individual date and session filters ---
+  const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T00:00:00.000Z"
   const [activeSession, setActiveSession] = useState(null); // e.g., "Lunch"
-  // useMemo(() => {
-  //   setAddress(
-  //     addresstype === "apartment"
-  //       ? JSON.parse(localStorage.getItem("address"))
-  //       : JSON.parse(localStorage.getItem("coporateaddress"))
-  //   );
-  // }, [addresstype]);
+  // --- END NEW ---
 
   const [showModal, setShowModal] = useState(false);
   const [childName, setChildName] = useState("");
@@ -51,7 +46,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
   const storedInfo =
     JSON.parse(localStorage.getItem("studentInformation")) || {};
 
-  // 🧠 On mount: check localStorage for existing student info
   useEffect(() => {
     const storedInfo = localStorage.getItem("studentInformation");
     if (storedInfo) {
@@ -75,13 +69,11 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       studentSection: childSection.trim(),
     };
 
-    // 🔒 Avoid duplicate save
     const storedInfo = localStorage.getItem("studentInformation");
     if (
       storedInfo &&
       JSON.stringify(JSON.parse(storedInfo)) === JSON.stringify(newInfo)
     ) {
-      // alert("Student information already saved!");
       setShowModal(false);
       return;
     }
@@ -96,10 +88,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       );
 
       if (res.status === 200 && res.data.success) {
-        // ✅ Save in localStorage
         localStorage.setItem("studentInformation", JSON.stringify(newInfo));
-
-        // alert("Student information added successfully!");
         setShowModal(false);
       } else {
         alert(res.data.message || "Failed to add student information.");
@@ -120,6 +109,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
   const handleShow = () => setShow(true);
 
   const [apartmentdata, setapartmentdata] = useState([]);
+
   const getapartmentd = async () => {
     try {
       let res = await axios.get(
@@ -127,7 +117,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       );
       if (res.status === 200) {
         setapartmentdata(res.data.corporatedata);
-        console.log("apartmentdata", res.data);
+        // console.log("apartmentdata", res.data);
       }
     } catch (error) {
       console.log(error);
@@ -142,7 +132,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       );
       if (res.status === 200) {
         setcorporatedata(res.data.corporatedata);
-        console.log("corporatedata", res.data);
+        // console.log("corporatedata", res.data);
       }
     } catch (error) {
       console.log(error);
@@ -162,8 +152,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
 
   const updateCartData = (updatedCart) => {
     localStorage.setItem("cart", JSON.stringify(updatedCart));
-    // setCartData(updatedCart);
-
     getcartData();
     setDiscountWallet(
       calculateTaxPrice + subtotal + Cutlery <=
@@ -184,13 +172,10 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
   let isProcessing = false;
 
   const increaseQuantity = (itemdata) => {
-    // Prevent multiple simultaneous operations
     if (isProcessing) return;
     isProcessing = true;
 
     try {
-      // console.log("increase itemdata", itemdata);
-
       if (!itemdata?.offerProduct) {
         const updatedCart = cartdata.map((item) => {
           if (item.foodItemId === itemdata?.foodItemId && !item.offerProduct) {
@@ -299,7 +284,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         }
       }
     } finally {
-      // Reset processing flag after a short delay
       setTimeout(() => {
         isProcessing = false;
       }, 100);
@@ -307,16 +291,13 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
   };
 
   const decreaseQuantity = (itemdata) => {
-    // Prevent multiple simultaneous operations
     if (isProcessing) return;
     isProcessing = true;
 
     try {
-      // Handle offer products (when itemdata itself is an offer product)
       if (itemdata?.offerProduct) {
         const updatedCart = cartdata
           .map((item) => {
-            // Only decrease the exact matching offer product item
             if (item.foodItemId === itemdata?.foodItemId && item.offerProduct) {
               if (item.Quantity > 0) {
                 item.Quantity -= 1;
@@ -327,15 +308,11 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
           })
           .filter((item) => item.Quantity > 0);
         updateCartData(updatedCart);
-      }
-      // Handle regular products and extra offer items
-      else {
-        // Check if there's an extra offer item for this product
+      } else {
         const offerPrXt = cartdata?.find(
           (ele) => ele.foodItemId === itemdata?.foodItemId && ele.extra === true
         );
         if (offerPrXt) {
-          // Decrease the extra offer item first (LIFO - Last In First Out)
           const updatedStoredCart = cartdata
             .map((item) => {
               if (
@@ -352,11 +329,8 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
             .filter((item) => item.Quantity > 0);
           updateCartData(updatedStoredCart);
         } else {
-          // No extra items, decrease the regular item
-
           const updatedExtraCart = cartdata
             .map((item) => {
-              // Match foodItemId and ensure it's not an extra item and matches offer status
               if (
                 item.foodItemId === itemdata?.foodItemId &&
                 !item.extra &&
@@ -375,7 +349,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         }
       }
     } finally {
-      // Reset processing flag after a short delay
       setTimeout(() => {
         isProcessing = false;
       }, 100);
@@ -409,6 +382,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
   const [discountWallet, setDiscountWallet] = useState(0);
   const [availableSlots, setAvailableSlots] = useState([]);
   const [deliveryMethod, setDeliveryMethod] = useState("slot");
+
   const applycoupon = async () => {
     try {
       if (!couponId) {
@@ -515,7 +489,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         }
       );
 
-      console.log("Cart validation response:", cartResponse);
+      // console.log("Cart validation response:", cartResponse);
       if (!cartResponse.status === 200) {
         let soldOutItems = cartResponse.data.data || [];
         let card = cartdata.map((prevCart) =>
@@ -589,7 +563,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       console.log(error);
     }
   };
-  // Add this helper function inside your Checkout component
+
   const formatTime12Hour = (date) => {
     let hours = date.getHours();
     let minutes = date.getMinutes();
@@ -642,24 +616,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         return;
       }
 
-      // if (deliveryMethod === "slot" && !slotdata) {
-      //   setLoading(false);
-      //   Swal2.fire({
-      //     toast: true,
-      //     position: "bottom",
-      //     icon: "info",
-      //     title: "Slot Alert",
-      //     text: `Please select a delivery slot!`,
-      //     showConfirmButton: false,
-      //     timer: 3000,
-      //     timerProgressBar: true,
-      //     customClass: {
-      //       popup: "me-small-toast",
-      //       title: "me-small-toast-title",
-      //     },
-      //   });
-      //   return;
-      // }
       if (!address?.name) {
         setLoading(false);
         Swal2.fire({
@@ -702,7 +658,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         setLoading(false);
         return;
       }
-      // const expressCharge = deliveryMethod === 'express' ? 49 : 0;
+
       let deliveryCharge = 0;
       if (deliveryMethod === "express") {
         deliveryCharge = address.expressDeliveryPrice || 0;
@@ -758,17 +714,12 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         });
       }
 
-      const formattedProducts = cartdata.map((item) => ({
-        foodItemId: item.foodItemId,
-        totalPrice: item.totalPrice,
-        quantity: item.Quantity,
-      }));
-
       const generateUniqueId = () => {
         const timestamp = Date.now().toString().slice(-4);
         const randomNumber = Math.floor(1000 + Math.random() * 9000);
         return `${address?.prefixcode}${timestamp}${randomNumber}`;
       };
+
       let finalSlotValue;
       if (deliveryMethod === "express") {
         const etaMinutes = address.expressDeliveryTime || 15;
@@ -779,39 +730,30 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       } else {
         finalSlotValue = slotdata;
       }
-      // 1. Create the array of individual order objects
+
       const orderGroups = groupedCart.map((group) => {
-        // Format products for this group
-        
         const groupFormattedProducts = group.items.map((item) => ({
           foodItemId: item.foodItemId,
           totalPrice: item.totalPrice,
           quantity: item.Quantity,
         }));
 
-        // Calculate tax for this group
         const groupTax = (gstlist[0]?.TotalGst / 100) * group.groupSubtotal;
 
-        // Use the group's date and session for the slot info
-        // You can make this more complex later if needed
-        const groupSlotValue = `${new Date(group.date).toLocaleDateString()} - ${
-          group.session
-        }`;
-        console.log("addrdfdfdfess", address?.hubId);
-        // console.log("ssssssssssssssss",group.items[0]?.locationInfo?.hubId || null);
-        // This is the individual order object for the backend
+        const groupSlotValue = `${new Date(
+          group.date
+        ).toLocaleDateString()} - ${group.session}`;
+
         return {
-          // Group-specific data
           allProduct: groupFormattedProducts,
           subTotal: group.groupSubtotal,
           tax: groupTax,
-          allTotal: group.groupSubtotal + groupTax, // Total for *this* group
+          allTotal: group.groupSubtotal + groupTax,
           slot: groupSlotValue,
-          deliveryDate: group.date, // Send date and session
+          deliveryDate: group.date,
           session: group.session,
-          orderid: generateUniqueId(), // Each group gets a unique ID
-          hubId: address?.hubId || null,
-          // Common data for all groups
+          orderid: generateUniqueId(),
+          hubId: group.items[0]?.locationInfo?.hubId || address?.hubId || null,
           customerId: user?._id,
           Placedon: new Date(),
           delivarylocation: address?.apartmentname,
@@ -831,8 +773,8 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
             deliveryMethod === "express"
               ? address?.expressDeliveryTime
               : address?.sequentialDeliveryTime,
-          deliveryCharge: 0, // Set individual delivery charge to 0
-          Cutlery: 0, // Set individual cutlery to 0
+          deliveryCharge: 0,
+          Cutlery: 0,
           orderdelivarytype: addresstype,
           orderstatus: "Scheduled",
           apartment: address?.apartmentname,
@@ -846,39 +788,27 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         };
       });
 
-      // 2. This is the new 'config' object.
-      // It wraps the orderGroups array and adds the COMBINED totals for payment.
       const config = {
         url: "/admin/addfoodorder",
         method: "post",
         baseURL: "http://localhost:7013/api/",
         headers: { "content-type": "application/json" },
         data: {
-          // NEW: The array of order objects
           orderGroups: orderGroups,
           hubId: address?.hubId || null,
-          // Common / Combined data for the whole payment
           mainCustomerId: user?._id,
           mainUsername: address?.name,
           mainMobile: Number(user?.Mobile),
-
-          // Grand totals (from your existing useMemos)
           grandSubTotal: subtotal,
           grandTax: calculateTaxPrice,
           grandDeliveryCharge: deliveryCharge,
           grandCutlery: Number(Cutlery),
-          grandAllTotal: totalP, // The final payable amount
-
-          // Discounts applied to the grand total
+          grandAllTotal: totalP,
           coupon: coupon,
           couponId: couponId,
           discountWallet: discountWallet,
-
-          // Cart IDs
           cartId: adcartId?.cartId,
           cart_id: adcartId?.data,
-
-          // Other common info
           companyId: user?.companyId,
           companyName: user?.companyName,
           customerType: user?.status,
@@ -887,58 +817,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
           studentSection: storedInfo?.studentSection,
         },
       };
-      // const config = {
-      //   url: "/admin/addfoodorder",
-      //   method: "post",
-      //   baseURL: "https://dd-test-frontend-1.onrender.com/api/",
-      //   headers: { "content-type": "application/json" },
-      //   data: {
-      //     customerId: user?._id,
-      //     allProduct: formattedProducts,
-      //     Placedon: new Date(),
-      //     delivarylocation: address?.apartmentname,
-      //     username: address?.name,
-      //     Mobilenumber: Number(user?.Mobile),
-      //     paymentmethod: paymentmethod,
-      //     delivarytype: Number(delivarychargetype || 0),
-      //     deliveryMethod: deliveryMethod || "slot",
-      //     payid: "pay001",
-      //     addressline: `${address?.name} ${
-      //       addresstype === "apartment" ? `${address?.flatno},` : ""
-      //     } ${addresstype === "apartment" ? `${address?.towerName},` : ""} ${
-      //       address?.mobilenumber
-      //     }`,
-      //     subTotal: subtotal,
-      //     foodtotal: Number(data?.total),
-      //     allTotal: totalP,
-      //     tax: calculateTaxPrice,
-      //     slot: finalSlotValue,
-      //     status: "Cooking",
-      //     Cutlery: Number(Cutlery),
-      //     // approximatetime: address?.approximatetime,
-      //     approximatetime:
-      //       deliveryMethod === "express"
-      //         ? address?.expressDeliveryTime
-      //         : address?.sequentialDeliveryTime,
-      //     deliveryCharge: deliveryCharge,
-      //     orderdelivarytype: addresstype,
-      //     orderstatus: "Scheduled",
-      //     apartment: address?.apartmentname,
-      //     prefixcode: address?.prefixcode,
-      //     orderid: generateUniqueId(),
-      //     coupon: coupon,
-      //     couponId: couponId,
-      //     discountWallet: discountWallet,
-      //     cartId: adcartId?.cartId,
-      //     cart_id: adcartId?.data,
-      //     companyId: user?.companyId,
-      //     companyName: user?.companyName,
-      //     customerType: user?.status,
-      //     studentName: storedInfo?.studentName,
-      //     studentClass: storedInfo?.studentClass,
-      //     studentSection: storedInfo?.studentSection,
-      //   },
-      // };
 
       const offerconfig = {
         url: "/admin/createreports",
@@ -973,9 +851,8 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         },
       };
       const res = await axios(config);
-      // const res = await axios(totalP == 0 ? config : config1);
+
       if (res.status === 200) {
-        // if (totalP == 0) {
         if (checkMin) {
           appLyOffferCustome(
             address?.name,
@@ -1007,11 +884,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         setTimeout(() => {
           navigate("/orders", { replace: true });
         }, 600);
-        // }
-        // else {
-        //   setLoading(false);
-        //   window.location.assign(res.data?.url?.url);
-        // }
       }
     } catch (error) {
       console.log(error);
@@ -1034,7 +906,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
   };
 
   const handleSecurityClick = () => {
-    // console.log('Security Modal Clicked');
     setShowSecurityModal(true);
   };
   const getSelectedAddress = async (id) => {
@@ -1045,7 +916,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       );
       if (res.status === 200) {
         let am = res.data.getdata;
-        console.log("selected address", am);
+        // console.log("selected address", am);
         setname(am?.Name || "");
         setmobilenumber(am?.Number || "");
         setTowerName(am?.towerName || "");
@@ -1109,12 +980,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
         : corporatedata
       )?.find((data) => data?.Apartmentname === apartmentname)
         ?.doordelivaryprice,
-      // old fields
-      // approximatetime: selectedLocationData?.approximatetime,
-      // Delivarycharge: selectedLocationData?.apartmentdelivaryprice,
-      // doordelivarycharge: selectedLocationData?.doordelivaryprice,
 
-      // new fields
       sequentialDeliveryPrice: selectedLocationData?.sequentialDeliveryPrice,
       sequentialDeliveryTime: selectedLocationData?.sequentialDeliveryTime,
       expressDeliveryPrice: selectedLocationData?.expressDeliveryPrice,
@@ -1152,7 +1018,7 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       : sessionStorage.setItem("coporateaddress", JSON.stringify(Savedaddress));
 
     setAddress(Savedaddress);
-    console.log("saved adsdas", Savedaddress);
+    // console.log("saved adsdas", Savedaddress);
     sessionStorage.setItem("Savedaddress", JSON.stringify(Savedaddress));
     saveSelectedAddress(Savedaddress);
 
@@ -1207,115 +1073,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
     });
   };
 
-  const validateCartWithAddress = (
-    address,
-    cartdata,
-    setCartData,
-    foodItemData
-  ) => {
-    if (!address || !cartdata?.length || !foodItemData?.length) return;
-
-    // Fix: Build location string correctly based on address structure
-    let location = "";
-
-    if (address?.apartmentname) {
-      // For saved addresses from localStorage/sessionStorage
-      location = address.apartmentname;
-    } else if (address?.Apartmentname) {
-      // For addresses from API response
-      location = address.Apartmentname;
-    }
-
-    // console.log("Validating with location:", location);
-    // console.log("Available food items:", foodItemData.length);
-
-    const validItems = [];
-    const removedItems = [];
-    const updatedItems = [];
-
-    cartdata.forEach((cartItem) => {
-      const foodItem = foodItemData.find(
-        (item) => item._id === cartItem.foodItemId
-      );
-
-      if (!foodItem) {
-        console.log(`Food item not found for ID: ${cartItem.foodItemId}`);
-        removedItems.push(cartItem.foodname);
-        return;
-      }
-
-      // console.log(`Checking ${cartItem.foodname} - Location prices:`, foodItem.locationPrice);
-
-      // Check if location exists in any of the locationPrice entries
-      const matchedLocation = foodItem.locationPrice?.find((loc) => {
-        const locationAddresses = loc.loccationAdreess || [];
-        // console.log(`Checking addresses:`, locationAddresses, `Against: ${location}`);
-
-        // Check if location matches any address in the array
-        return locationAddresses.some(
-          (addr) =>
-            addr.includes(location) ||
-            location.includes(addr.split(",")[0].trim())
-        );
-      });
-
-      if (matchedLocation && matchedLocation.Remainingstock > 0) {
-        const newQty = Math.min(
-          cartItem.Quantity,
-          matchedLocation.Remainingstock
-        );
-        const newPrice = cartItem.offerProduct
-          ? cartItem.price
-          : matchedLocation.foodprice;
-
-        validItems.push({
-          ...cartItem,
-          price: newPrice,
-          totalPrice: newPrice * newQty,
-          remainingstock: matchedLocation.Remainingstock,
-          Quantity: newQty,
-        });
-
-        if (cartItem.price !== newPrice || cartItem.Quantity !== newQty) {
-          updatedItems.push(cartItem.foodname);
-        }
-
-        console.log(`✅ ${cartItem.foodname} - Available at ${location}`);
-      } else {
-        console.log(`❌ ${cartItem.foodname} - Not available at ${location}`);
-        removedItems.push(cartItem.foodname);
-      }
-    });
-
-    console.log("Validation result:", {
-      original: cartdata.length,
-      valid: validItems.length,
-      removed: removedItems.length,
-      updated: updatedItems.length,
-    });
-
-    // Only show notification and update if there are actual changes
-    if (removedItems.length || updatedItems.length) {
-      let msg = "";
-      if (removedItems.length)
-        msg += `Removed: ${removedItems.join(", ")}<br/>`;
-      if (updatedItems.length) msg += `Updated: ${updatedItems.join(", ")}`;
-
-      Swal2.fire({
-        title: "Cart Updated for New Location",
-        html: msg,
-        icon: "info",
-        toast: true,
-        position: "bottom",
-        timer: 3000,
-        showConfirmButton: false,
-      });
-
-      setCartData(validItems);
-      localStorage.setItem("cart", JSON.stringify(validItems));
-    }
-  };
-
   const getfooditems = async (shouldValidate = false) => {
     try {
       let res = await axios.get(
@@ -1323,13 +1080,8 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       );
       if (res.status === 200) {
         const foodItemData = res.data.data;
-        console.log("Fetched food items:", foodItemData);
-        // Only validate if specifically requested and address exists
-        if (shouldValidate && address?.apartmentname && cartdata.length > 0) {
-          // validateCartWithAddress(address, cartdata, setCartData, foodItemData);
-        } else {
-          filterOutLowStockItems(foodItemData);
-        }
+        // console.log("Fetched food items:", foodItemData);
+        filterOutLowStockItems(foodItemData);
       }
     } catch (error) {
       console.log(error);
@@ -1338,41 +1090,15 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
 
   const [previousAddress, setPreviousAddress] = useState("");
 
-  // Modified useEffect to only validate on actual address changes
-  // useEffect(() => {
-  //   const currentAddressName = address?.apartmentname || address?.Apartmentname;
-
-  //   // Only validate if address actually changed and we have cart items
-  //   if (
-  //     currentAddressName &&
-  //     currentAddressName !== previousAddress &&
-  //     previousAddress !== "" && // Don't validate on first load
-  //     cartdata.length > 0
-  //   ) {
-  //     // console.log("Address changed from", previousAddress, "to", currentAddressName);
-  //     getfooditems(true); // Validate cart with new address
-  //   }
-
-  //   setPreviousAddress(currentAddressName);
-  // }, [address?.apartmentname, address?.Apartmentname]);
-
-  // Keep original useEffect for initial load without validation
-  // useEffect(() => {
-  //   getfooditems(false); // Don't validate on initial load
-  // }, []);
-
   const subtotal = useMemo(() => {
     return cartdata?.reduce((acc, item) => {
       return Number(acc) + Number(item.price) * Number(item.Quantity);
     }, 0);
   }, [cartdata]);
-// ... after the subtotal useMemo ...
 
   const groupedCart = useMemo(() => {
-    // Helper to format dates for display
     const formatDate = (dateString) => {
       const date = new Date(dateString);
-      // Example: "Sat, Nov 9"
       return date.toLocaleDateString("en-US", {
         weekday: "short",
         month: "short",
@@ -1381,7 +1107,6 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
     };
 
     const groups = cartdata.reduce((acc, item) => {
-      // Create a unique key for each group
       const groupKey = `${item.deliveryDate}-${item.session}`;
 
       if (!acc[groupKey]) {
@@ -1400,11 +1125,11 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
       return acc;
     }, {});
 
-    // Return an array of the groups, sorted by date
     return Object.values(groups).sort(
       (a, b) => new Date(a.date) - new Date(b.date)
     );
   }, [cartdata]);
+
   const [gstlist, setGstList] = useState([]);
   const getGst = async () => {
     try {
@@ -1426,32 +1151,20 @@ const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T0
   const calculateTaxPrice = useMemo(() => {
     return (gstlist[0]?.TotalGst / 100) * subtotal;
   }, [subtotal, gstlist]);
-const uniqueDates = useMemo(() => {
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-    const dateMap = new Map();
-    
-    // Get all unique dates from cart
-    cartdata.forEach(item => {
-      if (!dateMap.has(item.deliveryDate)) {
-        const dateObj = new Date(item.deliveryDate);
-        const isToday = new Date().toDateString() === dateObj.toDateString();
-        
-        dateMap.set(item.deliveryDate, {
-          dateKey: item.deliveryDate,
-          dateObj: dateObj,
-          label: isToday ? "Today" : days[dateObj.getUTCDay()],
-          displayDate: dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        });
-      }
+
+  // --- NEW: A Set of all dates that have items in the cart ---
+  const cartDates = useMemo(() => {
+    const dateSet = new Set();
+    cartdata.forEach((item) => {
+      dateSet.add(item.deliveryDate);
     });
-    // Return a sorted array of date objects
-    return Array.from(dateMap.values()).sort((a, b) => a.dateObj - b.dateObj);
+    return dateSet;
   }, [cartdata]);
 
- const sessionsForActiveDate = useMemo(() => {
-    // Find all available sessions FOR THE CURRENTLY SELECTED DATE
+  // --- NEW: Memo to find available sessions for the *selected date* ---
+  const sessionsForActiveDate = useMemo(() => {
     const sessions = new Set();
-    cartdata.forEach(item => {
+    cartdata.forEach((item) => {
       if (item.deliveryDate === activeDateKey) {
         sessions.add(item.session);
       }
@@ -1459,20 +1172,29 @@ const uniqueDates = useMemo(() => {
     return Array.from(sessions);
   }, [cartdata, activeDateKey]);
 
-  // --- 4. Add useEffect to set default active filters ---
+  // --- NEW: useEffect to set default active filters ---
   useEffect(() => {
-    if (uniqueDates.length > 0 && !activeDateKey) {
-      // Set the first date as active
-      const firstDateKey = uniqueDates[0].dateKey;
-      setActiveDateKey(firstDateKey);
+    // Find the first date in the cart, starting from today
+    if (cartDates.size > 0 && !activeDateKey) {
+      // Find the earliest date that is in the cart
+      const sortedCartDates = Array.from(cartDates).sort(
+        (a, b) => new Date(a) - new Date(b)
+      );
+      const firstAvailableDateKey = sortedCartDates[0];
 
-      // Find the first session for that first date
-      const firstSession = cartdata.find(item => item.deliveryDate === firstDateKey)?.session;
-      if (firstSession) {
-        setActiveSession(firstSession);
+      if (firstAvailableDateKey) {
+        setActiveDateKey(firstAvailableDateKey);
+        // Find the first session for that first date
+        const firstSession = cartdata.find(
+          (item) => item.deliveryDate === firstAvailableDateKey
+        )?.session;
+        if (firstSession) {
+          setActiveSession(firstSession);
+        }
       }
     }
-  }, [uniqueDates, cartdata, activeDateKey]);
+  }, [cartDates, cartdata, activeDateKey]);
+
   const [isHandleShowCalled, setIsHandleShowCalled] = useState(false);
 
   useEffect(() => {
@@ -1520,7 +1242,6 @@ const uniqueDates = useMemo(() => {
         toast: true,
         position: "bottom",
         icon: "info",
-        // title: "Apply Wallet Alert",
         text: `Minimum cart value for wallet use is ₹ ${walletSeting.minCartValueForWallet}`,
         showConfirmButton: false,
         timer: 3000,
@@ -1593,16 +1314,13 @@ const uniqueDates = useMemo(() => {
       setDiscountWallet(0);
     }
   };
-  useEffect(() => {
-    if (groupedCart.length > 0 && !activeSlotKey) {
-    setActiveSlotKey(groupedCart[0].id);
-    }
-  }, [groupedCart, activeSlotKey]);
+
   const [showApplyWalletAlert, setShowApplyWalletAlert] = useState(false);
   const [isBillingOpen, setIsBillingOpen] = useState(true);
   const toggleBillingDetails = () => {
     setIsBillingOpen(!isBillingOpen);
   };
+
   return (
     <div className="mainbg">
       <div className="checkoutcontainer">
@@ -1628,50 +1346,54 @@ const uniqueDates = useMemo(() => {
           </div>
         </div>
 
-        {/* <div className="mycart">
-          <h5>My Cart</h5>
-          <a href="/home">
-            <RxCross2
-              onClick={() => navigate("/home")}
-              style={{ fontSize: "20px" }}
-            />
-          </a>
-        </div> */}
-
         <div className="mobile-checkout">
           <div className="cartHead mb-1">My Meal</div>
-<CheckoutDateStrip
-            dates={uniqueDates}
+
+          {/* --- MODIFIED: Add the new Date Strip --- */}
+          <CheckoutDateStrip
+            cartDates={cartDates}
             activeDateKey={activeDateKey}
-          onDateSelect={(dateKey) => {
+            onDateSelect={(dateKey) => {
               setActiveDateKey(dateKey);
               // When date changes, auto-select the first available session for that date
-              const firstSession = cartdata.find(item => item.deliveryDate === dateKey)?.session;
+              const firstSession = cartdata.find(
+                (item) => item.deliveryDate === dateKey
+              )?.session;
               setActiveSession(firstSession || null);
             }}
-         />
+          />
 
-          {/* --- 6. Add the new Session Buttons --- */}
-          <div className="checkout-session-selector">
-            <button
-              className={`checkout-session-btn ${activeSession === "Lunch" ? "active" : ""}`}
-              onClick={() => setActiveSession("Lunch")}
-              disabled={!sessionsForActiveDate.includes("Lunch")}
-            >
-              Lunch
-            </button>
-            <button
-              className={`checkout-session-btn ${activeSession === "Dinner" ? "active" : ""}`}
-              onClick={() => setActiveSession("Dinner")}
-              disabled={!sessionsForActiveDate.includes("Dinner")}
-            >
-              Dinner
-            </button>
-          </div>
           <div className="checkoutcontainer">
             <div class="cart-container">
               <div class="cart-section">
                 <div class="cart-content">
+                  <div className="checkout-session-selector">
+                  <div className={`checkout-session-btn-wrapper ${
+                        activeSession === "Lunch" ? "active" : ""}`}>
+                    <button
+                      className={`checkout-session-btn ${
+                        activeSession === "Lunch" ? "active" : ""
+                      }`}
+                      onClick={() => setActiveSession("Lunch")}
+                      disabled={!sessionsForActiveDate.includes("Lunch")}
+                    >
+                     <span>Lunch</span>
+                      <span>12:00pm to 04:00pm</span>
+                    </button>
+                    </div>
+                    <div className="checkout-session-btn-wrapper">
+                    <button
+                      className={`checkout-session-btn ${
+                        activeSession === "Dinner" ? "active" : ""
+                      }`}
+                      onClick={() => setActiveSession("Dinner")}
+                      disabled={!sessionsForActiveDate.includes("Dinner")}
+                    >
+                      <span>Dinner</span>
+                      <span>06:00pm to 08:00pm</span>
+                    </button>
+                    </div>
+                  </div>
                   <div class="cart-header">
                     <div class="header-content">
                       <div class="header-left">
@@ -1694,105 +1416,106 @@ const uniqueDates = useMemo(() => {
                     </div>
                   </div>
 
-                 {/* NEW: Loop over the grouped cart */}
+                  {/* --- MODIFIED: Loop over cartdata and FILTER --- */}
                   {cartdata
                     .filter(
                       (item) =>
                         item.deliveryDate === activeDateKey &&
                         item.session === activeSession
-                    ).map((item, i) => (
-                        <div className="cart-item" key={i}>
-                          <div className="veg-indicator">
-                            {item?.foodcategory === "Veg" ? (
-                              <img
-                                src={IsVeg}
-                                alt="veg"
-                                className="indicator-icon"
-                              />
-                            ) : (
-                              <img
-                                src={IsNonVeg}
-                                alt="non-veg"
-                                className="indicator-icon"
-                              />
-                            )}
-                          </div>
-                          <div className="item-content">
-                            <div className="item-details">
-                              <div className="item-name">
-                                <div className="item-name-text">
-                                  {item.offerProduct && (
-                                    <BiSolidOffer color="green" />
-                                  )}
-                                  {item?.foodname}
-                                </div>
+                    )
+                    .map((item, i) => (
+                      <div className="cart-item" key={i}>
+                        <div className="veg-indicator">
+                          {item?.foodcategory === "Veg" ? (
+                            <img
+                              src={IsVeg}
+                              alt="veg"
+                              className="indicator-icon"
+                            />
+                          ) : (
+                            <img
+                              src={IsNonVeg}
+                              alt="non-veg"
+                              className="indicator-icon"
+                            />
+                          )}
+                        </div>
+                        <div className="item-content">
+                          <div className="item-details">
+                            <div className="item-name">
+                              <div className="item-name-text">
+                                {item.offerProduct && (
+                                  <BiSolidOffer color="green" />
+                                )}
+                                {item?.foodname}
                               </div>
-                              <div className="item-tags">
-                                <div className="portion-tag">
-                                  <div className="portion-text">
-                                    <div className="portion-label">
-                                      {item?.Quantity} Portion
-                                      {item?.Quantity > 1 ? "s" : ""}
-                                    </div>
+                            </div>
+                            <div className="item-tags">
+                              <div className="portion-tag">
+                                <div className="portion-text">
+                                  <div className="portion-label">
+                                    {item?.Quantity} Portion
+                                    {item?.Quantity > 1 ? "s" : ""}
                                   </div>
                                 </div>
                               </div>
                             </div>
-                            <div className="item-controls">
-                              <div className="quantity-control">
-                                <div
-                                  className="quantity-btn"
-                                  onClick={() => debouncedDecreaseQuantity(item)}
-                                >
-                                  <div className="btn-text">-</div>
-                                </div>
-                                <div className="quantity-display">
-                                  <div className="quantity-text">
-                                    {item?.Quantity}
-                                  </div>
-                                </div>
-                                <div
-                                  className="quantity-btn"
-                                  onClick={() => debouncedIncreaseQuantity(item)}
-                                >
-                                  <div className="btn-text">+</div>
+                          </div>
+                          <div className="item-controls">
+                            <div className="quantity-control">
+                              <div
+                                className="quantity-btn"
+                                onClick={() => debouncedDecreaseQuantity(item)}
+                              >
+                                <div className="btn-text">-</div>
+                              </div>
+                              <div className="quantity-display">
+                                <div className="quantity-text">
+                                  {item?.Quantity}
                                 </div>
                               </div>
-                              <div className="price-container vertical">
-                                {item.originalPrice &&
-                                  item.originalPrice > item.price && (
-                                    <div className="original-price">
-                                      <div className="price-line"></div>
-                                      <div className="original-price-content">
-                                        <div className="original-currency">
-                                          <div className="original-currency-text">
-                                            ₹
-                                          </div>
+                              <div
+                                className="quantity-btn"
+                                onClick={() => debouncedIncreaseQuantity(item)}
+                              >
+                                <div className="btn-text">+</div>
+                              </div>
+                            </div>
+                            <div className="price-container vertical">
+                              {item.originalPrice &&
+                                item.originalPrice > item.price && (
+                                  <div className="original-price">
+                                    <div className="price-line"></div>
+                                    <div className="original-price-content">
+                                      <div className="original-currency">
+                                        <div className="original-currency-text">
+                                          ₹
                                         </div>
-                                        <div className="original-amount">
-                                          <div className="original-amount-text">
-                                            {item.originalPrice * item.Quantity}
-                                          </div>
+                                      </div>
+                                      <div className="original-amount">
+                                        <div className="original-amount-text">
+                                          {item.originalPrice * item.Quantity}
                                         </div>
                                       </div>
                                     </div>
-                                  )}
-                                <div className="current-price">
-                                  <div className="current-currency">
-                                    <div className="current-currency-text">₹</div>
                                   </div>
-                                  <div className="current-amount">
-                                    <div className="current-amount-text">
-                                      {item?.price * item.Quantity}
-                                    </div>
+                                )}
+                              <div className="current-price">
+                                <div className="current-currency">
+                                  <div className="current-currency-text">₹</div>
+                                </div>
+                                <div className="current-amount">
+                                  <div className="current-amount-text">
+                                    {item?.price * item.Quantity}
                                   </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-                      ))}
-                  
+                      </div>
+                    ))}
+                  {/* --- END OF MODIFIED LOOP --- */}
 
                   {/* Show if cart is completely empty */}
                   {cartdata?.length === 0 && (
@@ -1801,6 +1524,20 @@ const uniqueDates = useMemo(() => {
                       items in cart
                     </div>
                   )}
+
+                  {/* --- NEW: Show if cart has items, but not for this filter --- */}
+                  {cartdata?.length > 0 &&
+                    cartdata.filter(
+                      (item) =>
+                        item.deliveryDate === activeDateKey &&
+                        item.session === activeSession
+                    ).length === 0 && (
+                      <div className="text-center p-3">
+                        <MdRemoveShoppingCart style={{ fontSize: "18px" }} />
+                        No items in cart for this date and session.
+                      </div>
+                    )}
+                  {/* --- END NEW --- */}
                 </div>
               </div>
 
@@ -2226,7 +1963,7 @@ const uniqueDates = useMemo(() => {
               </div>
               {/* Action */}
               {/* <button className="delivery-change-btn">
-      <img src="/assets/edit-icon.svg" alt="Edit" className="delivery-icon-small" />
+      <img src="/Assets/edit-icon.svg" alt="Edit" className="delivery-icon-small" />
       <span>Change</span>
     </button> */}
             </div>
