@@ -19,7 +19,7 @@ import "../../Styles/SalesReport.css";
 
 const SalesReport = () => {
   // State declarations
-  const [products, setProducts] = useState([]);
+  // const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState(moment().format("YYYY-MM-DD"));
   const [endDate, setEndDate] = useState(moment().format("YYYY-MM-DD"));
@@ -46,47 +46,48 @@ const SalesReport = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLocationToggle = (location) => {
-    setSelectedLocations((prev) => {
-      if (prev.includes(location)) {
-        return prev.filter((loc) => loc !== location);
-      } else {
-        return [...prev, location];
-      }
-    });
-  };
+  // const handleLocationToggle = (location) => {
+  //   setSelectedLocations((prev) => {
+  //     if (prev.includes(location)) {
+  //       return prev.filter((loc) => loc !== location);
+  //     } else {
+  //       return [...prev, location];
+  //     }
+  //   });
+  // };
 
-  const handleSelectAll = () => {
-    if (selectedLocations.length === locationData.length) {
-      setSelectedLocations([]);
-    } else {
-      setSelectedLocations([...locationData]);
-    }
-  };
+  // const handleSelectAll = () => {
+  //   if (selectedLocations.length === locationData.length) {
+  //     setSelectedLocations([]);
+  //   } else {
+  //     setSelectedLocations([...locationData]);
+  //   }
+  // };
 
-  const getProducts = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(
-        "http://localhost:7013/api/admin/getFoodItems"
-      );
-      if (res.status === 200) {
-        setProducts(res.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const getProducts = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.get(
+  //       "http://localhost:7013/api/admin/getFoodItems"
+  //     );
+  //     if (res.status === 200) {
+  //       setProducts(res.data.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const getSalesReport = async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
 
-      if (startDate) params.append("startDate", startDate);
-      if (endDate) params.append("endDate", endDate);
+      // send precise ISO timestamps (start/end of day) to avoid timezone ambiguity
+      if (startDate) params.append("startDate", moment(startDate).startOf("day").toISOString());
+      if (endDate) params.append("endDate", moment(endDate).endOf("day").toISOString());
       if (Object.keys(selectHub).length > 0)
         params.append("hubId", selectHub.hubId);
       if (locationData.length > 0) {
@@ -132,7 +133,7 @@ const SalesReport = () => {
   };
 
   useEffect(() => {
-    getProducts();
+    // getProducts();
     getHubs();
     getSalesReport(); 
   }, []);
