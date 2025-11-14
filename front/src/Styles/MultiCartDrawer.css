@@ -57,8 +57,9 @@
 
 /* checkout at top-right */
 .checkout-top {
-  font-weight: 800;
-  color: #222;
+  font-weight: bold;
+  color: var(--primary-text);
+  font-size: 16px;
   cursor: pointer;
   /* padding: 10px 6px 10px 0; */
   border-radius: 12px;

@@ -185,7 +185,6 @@ class customerCart {
             discountWallet: isFirstOrder ? discountWallet || 0 : 0,
             coupon: isFirstOrder ? coupon || 0 : 0,
             couponId: isFirstOrder ? couponId || null : null,
-            // Add common cart/company info
             cartId: cartId,
             cart_id: cart_id,
             companyId: companyId,
@@ -201,13 +200,9 @@ class customerCart {
           const savedOrder = await newOrder.save();
           savedOrderDetails.push(savedOrder);
 
-          // Update stock using the NEW HubMenu logic
-          // 'group.hubId' was added in our Step 1 frontend fix
-          console.log("gtoup", group.hubId);
+          // console.log("gtoup", group.hubId);
           await updateStockFromHubMenu(group.hubId, group.allProduct, group.deliveryDate, group.session);
         }
-
-        // --- After the loop, update Wallet and Coupon ONCE ---
 
         // 1. Update Wallet
         if (discountWallet > 0 && mainCustomerId) {
