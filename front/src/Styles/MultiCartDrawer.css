@@ -189,7 +189,7 @@ padding-bottom: 0 !important;
 .multi-cart-drawer-content {
   /* width: calc(100% - 32px); */
   /* max-width: 780px; */
-  background: rgba(var(--cream-walls), 0.1);
+  background: rgba(var(--cream-walls), 0.4);
   
   border-top-right-radius: 28px;
   border-top-left-radius: 28px;
