@@ -69,13 +69,15 @@
   cursor: pointer;
   transition: all 0.3s ease;
   font-family: "Inter", sans-serif;
-  min-width: 100px;
+  /* min-width: 100px; */
+  width: 76px;
+  height: 64px;
 }
 
 .date-card-checkout.active {
-  background: var(--copper-accents);
+  background: var(--cuminBrown);
   color: var(--app-foreground);
-  border-color: var(--secondary-text);
+  border-color: var(--steel-light);
   /* box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3); */
 }
 
@@ -84,18 +86,18 @@
   color: var(--secondary-text);
   border-color: var(--secondary-text);
   cursor: not-allowed;
-  opacity: 0.8;
+  /* opacity: 0.8; */
   background-color: var(--steel-light);
 }
 
 .date-card-checkout .day {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: medium;
+  font-size: 11px;
   margin-bottom: 3px;
 }
 .date-card-checkout .date {
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 /* Session Button Styles */
@@ -122,7 +124,7 @@
   transition: all 0.3s ease;
 }
 .checkout-session-btn-wrapper.active {
- border-color: var(--copper-accents);;
+ border-color: var(--cuminBrown);
  background-color:var(--app-foreground)
 }
 
@@ -153,21 +155,21 @@
 }
  .checkout-session-btn span:last-child {
   font-size: 10px;
-  font-weight: regular;
+  font-weight: 400;
 }
 
 .checkout-session-btn.active {
-  background: var(--copper-accents);
+  background: var(--cuminBrown);
   color: var(--app-foreground);
   border-color: var(--secondary-text);
 }
 
 .checkout-session-btn:disabled {
-  background-color: #f5f5f5;
-  color: #ccc;
-  border-color: #eee;
+  background-color: var(--steel-light);
+  color: var(--secondary-text);
+  border-color: var(--secondary-text);
   cursor: not-allowed;
-  opacity: 0.7;
+  /* opacity: 0.7; */
 }
 
 .delete-slot-wrapper{
@@ -179,9 +181,10 @@
 }
 
 .delete-slot-button {
-  color: var(--copper-accents);
+  color: var(--cuminBrown);
   border: none;
   cursor: pointer;
   font-weight: 500;
   font-size: 10px;
+  /* gap: 5px; */
 }

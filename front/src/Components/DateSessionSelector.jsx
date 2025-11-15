@@ -183,7 +183,7 @@ const DateSessionSelector = ({ onChange, currentDate, currentSession, menuData =
           disabled={!canScrollLeft}
           aria-label="scroll-left"
         >
-          <img src="/Assets/circleleft.svg" style={{ transform: "rotate(180deg)" }} alt="prev" />
+          <img src="/Assets/arrowCircleBrown.svg" style={{ transform: "rotate(180deg)" }} alt="prev" />
         </button>
 
         <div className="date-strip" ref={scrollRef}>
@@ -211,7 +211,7 @@ const DateSessionSelector = ({ onChange, currentDate, currentSession, menuData =
           disabled={!canScrollRight}
           aria-label="scroll-right"
         >
-          <img src="/Assets/circleleft.svg" alt="next" />
+          <img src="/Assets/arrowCircleBrown.svg" alt="next" />
         </button>
       </div>
 

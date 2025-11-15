@@ -779,7 +779,7 @@ input[type="number"] {
   text-align: center;
   padding: 16px;
   font-size: 18px;
-  z-index: 1000;
+  z-index: 100;
   width: calc(100% - 40px); /* Full width with 20px margin on each side */
   max-width: 400px; /* Maximum width for larger screens */
   border-radius: 24px;

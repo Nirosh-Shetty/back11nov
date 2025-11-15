@@ -1424,6 +1424,8 @@ const Checkout = () => {
               }
               className="delete-slot-button"
             >
+            <img src="/Assets/deleteBrown.svg" style={{ marginRight: '5px' }} alt="delete"
+            />
               Delete slot ({cartdata.filter((it) => it.deliveryDate === activeDateKey && it.session === activeSession).length} items)
             </button>
           </div>

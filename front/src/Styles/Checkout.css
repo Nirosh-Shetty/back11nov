@@ -1213,11 +1213,11 @@ justify-content: space-between; */
   transition: all 0.2s ease;
 }
 
-.date-card-checkout.active {
+/* .date-card-checkout.active {
   background: #6B8E23;
   color: #ffffff;
   border-color: #6B8E23;
-}
+} */
 
 .date-card-checkout .date-date {
   font-size: 14px;

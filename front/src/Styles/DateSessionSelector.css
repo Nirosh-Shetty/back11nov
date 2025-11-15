@@ -32,8 +32,8 @@
   /* color: blue; */
   font-weight: bold;
   /* transform: rotate(180deg); */
-  filter: invert(38%) sepia(100%) saturate(300%) hue-rotate(340deg)
-    brightness(95%) contrast(90%);
+  /* filter: invert(38%) sepia(100%) saturate(300%) hue-rotate(340deg)
+    brightness(95%) contrast(90%); */
   transition: opacity 0.3s;
 }
 
@@ -48,7 +48,9 @@
   cursor: default;
   opacity: 0.5;
   pointer-events: none;
-  filter: none;
+  /* filter: none; */
+  filter: invert(60%) sepia(10%) saturate(0%) hue-rotate(180deg)
+    brightness(85%) contrast(85%);
 }
 
 /* Date scrolling strip */
@@ -79,14 +81,14 @@
   transition: all 0.3s ease;
   width: 76px;
   height: 64px;
-  margin-left: 10px;
+  margin-left: 0.8em;
 }
 
 .date-card.active {
-  background: var(--copper-accents);
+  background: var(--cuminBrown);
   color: #fff;
-  border: 1.5px solid var(--secondary-text);
-  box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3);
+  border: 2px solid var(--steel-light);
+  /* box-shadow: 0 3px 6px rgba(162, 83, 32, 0.3); */
 }
 
 .date-card.disabled {
@@ -95,8 +97,8 @@
   color: var(--secondary-text);
   border-color: var(--secondary-text);
   cursor: not-allowed;
-  opacity: 0.8;
-  background-color: var(--steel-light);
+  /* opacity: 0.8; */
+  background-color: var(--steel-light)
 }
 
 .date-card .day {
@@ -107,12 +109,13 @@
 
 .date-card .date {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 300;
 }
 
 .date-card .weekday {
   font-size: 10px;
-  opacity: 0.8;
+  /* opacity: 0.8; */
+  font-weight: 300;
 }
 
 /* Reset line */
@@ -123,7 +126,7 @@
 }
 
 .reset-btn {
-  color: #a25320;
+  color: var(--copper-accents);
   font-size: 14px;
   cursor: pointer;
   font-weight: 500;
@@ -154,7 +157,7 @@
 
 .session-btn-wrapper.active {
   background: var(--cream-walls);
-  border-top: 2px solid var(--copper-accents);
+  border-top: 2px solid var(--cuminBrown);
 }
 
 .session-btn-wrapper.disabled {
@@ -174,14 +177,20 @@
 }
 
 .session.active {
-  background: var(--copper-accents);
+  background: var(--cuminBrown);
   color: white;
-  border: 1px solid var(--secondary-text);
+  border: 2px solid var(--steel-light);
 }
 
 .session.disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  /* opacity: 0.6; */
+  pointer-events: none;
+  color: var(--secondary-text);
+  border-color: var(--secondary-text);
+  cursor: not-allowed;
+  /* opacity: 0.8; */
+  background-color: var(--steel-light)
 }
 
 .session .title {

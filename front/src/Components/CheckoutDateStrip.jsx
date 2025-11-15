@@ -109,7 +109,7 @@ const CheckoutDateStrip = ({
         disabled={!canScrollLeft}
       >
         {/* <ArrowLeft /> */}
-        <img src="/Assets/circleleft.svg" style={{ transform: "rotate(180deg)" }} alt="prev" />
+        <img src="/Assets/arrowCircleBrown.svg" style={{ transform: "rotate(180deg)" }} alt="prev" />
 
       </button>
 
@@ -144,7 +144,7 @@ const CheckoutDateStrip = ({
         disabled={!canScrollRight}
       >
         {/* <ArrowRight /> */}
-        <img src="/Assets/circleleft.svg" alt="next" />
+        <img src="/Assets/arrowCircleBrown.svg" alt="next" />
       </button>
     </div>
   );
