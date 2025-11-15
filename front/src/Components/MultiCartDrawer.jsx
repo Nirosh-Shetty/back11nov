@@ -164,7 +164,7 @@ const MultiCartDrawer = ({
                     <div className="multi-cart-header">
                         {/* <h3>Your Meals</h3> */}
                         <div className="checkout-top" onClick={handleCheckout}>
-                            Checkout All →
+                            Checkout All <img src="/Assets/checkoutback.svg" style={{ transform: "rotate(0deg)" }}  />
                         </div>
                     </div>
 
