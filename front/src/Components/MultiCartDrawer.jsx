@@ -51,13 +51,21 @@ const MultiCartDrawer = ({
         <>
             {/* small "All Slots" bubble above closed bar */}
             {isDrawerOpen || <>
-                {groupedCarts.length>1 && <div className="all-slots-bubble" onClick={() => setIsDrawerOpen(true)}>
+                {groupedCarts.length>1 &&
+                <>
+                 <div className="all-slots-bubble" onClick={() => setIsDrawerOpen(true)}>
                     All Slots
                     <img src="/Assets/arrowup.svg" />
-                </div>}
+                </div>
+                <div className='cartbutton'>
+                    <div className='cartbtn back1'></div>
+                    <div className='cartbtn back2'></div>
+                </div>
+                </>
+                }
 
                 <div className="cartbutton">
-                    <div className="cartbtn">
+                    <div className={`cartbtn ${groupedCarts.length>1?'multi-cart':"" }`}>
                         <div className="d-flex justify-content-between align-items-center">
                             <div className="d-flex gap-1 align-items-center">
                                 {/* <p className="cart-slot-type">{SloteType}</p> */}

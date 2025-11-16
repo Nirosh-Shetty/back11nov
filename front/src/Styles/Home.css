@@ -792,11 +792,24 @@ input[type="number"] {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.cartbtn.multi-cart{
+  transition: none;
+  border: 0.5px solid var(--secondary-text);
+  /* outline: 2px solid white; */
+}
+.cartbtn.multi-cart:hover{
+    box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.25);
+    background-color: rgba(107, 142, 35, 0.85);
+    /* transform: translateX(0%) translateY(0px); */
+
+
+}
+
 .cartbtn:hover {
-  transform: translateX(-50%) translateY(-3px);
+  /* transform: translateX(-50%) translateY(-3px); */
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
   background-color: rgba(107, 142, 35, 0.95);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
 }
 
 .cartbtn:active {
