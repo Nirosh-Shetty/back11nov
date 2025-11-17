@@ -5,7 +5,7 @@ const { ObjectId } = mongoose.Schema.Types;
 const ReferralSchema = new mongoose.Schema({
   referredBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Userlist',
+    ref: 'Customer',
     default: null
   },
   status: {
