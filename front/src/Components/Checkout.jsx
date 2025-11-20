@@ -14,6 +14,7 @@ import IsNonVeg from "../assets/isVeg=no.svg";
 import "../Styles/Normal.css";
 import { CircleCheck, ShieldAlert } from "lucide-react";
 import cross from "../assets/cross.png";
+import LocationModal from "./LocationModal";
 
 // --- NEW: Import the new component and its CSS ---
 import CheckoutDateStrip from "./CheckoutDateStrip";
@@ -26,14 +27,20 @@ const Checkout = () => {
   const location = useLocation();
   const data = location?.state;
   const addresstype = localStorage.getItem("addresstype");
+  // const [address, setAddress] = useState(
+  //   JSON.parse(
+  //     localStorage.getItem(
+  //       addresstype === "apartment" ? "address" : "coporateaddress"
+  //     )
+  //   ) || {}
+  // );
   const [address, setAddress] = useState(
-    JSON.parse(
-      localStorage.getItem(
-        addresstype === "apartment" ? "address" : "coporateaddress"
-      )
-    ) || {}
+    JSON.parse(localStorage.getItem("coporateaddress")) || {}
   );
 
+  const [expandedSections, setExpandedSections] = useState({});
+
+  console.log(data, "checkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
   // --- NEW: State for individual date and session filters ---
   const [activeDateKey, setActiveDateKey] = useState(null); // e.g., "2025-11-09T00:00:00.000Z"
   const [activeSession, setActiveSession] = useState(null); // e.g., "Lunch"
@@ -45,7 +52,7 @@ const Checkout = () => {
   const [childSection, setChildSection] = useState("");
   const storedInfo =
     JSON.parse(localStorage.getItem("studentInformation")) || {};
-
+  const [showLocationModal, setShowLocationModal] = useState(false);
   useEffect(() => {
     const storedInfo = localStorage.getItem("studentInformation");
     if (storedInfo) {
@@ -145,9 +152,7 @@ const Checkout = () => {
 
   const getapartmentd = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getapartment"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getapartment");
       if (res.status === 200) {
         setapartmentdata(res.data.corporatedata);
         // console.log("apartmentdata", res.data);
@@ -160,9 +165,7 @@ const Checkout = () => {
   const [corporatedata, setcorporatedata] = useState([]);
   const getCorporatedata = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getcorporate"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getcorporate");
       if (res.status === 200) {
         setcorporatedata(res.data.corporatedata);
         // console.log("corporatedata", res.data);
@@ -175,7 +178,7 @@ const Checkout = () => {
   const getcartData = () => {
     const getc = JSON.parse(localStorage.getItem("cart")) || [];
     setCartData(getc);
-    console.log(getc)
+    console.log(getc);
   };
 
   useEffect(() => {
@@ -490,17 +493,14 @@ const Checkout = () => {
   useEffect(() => {
     const addonedCarts = async () => {
       try {
-        let res = await axios.post(
-          "http://localhost:7013/api/cart/addCart",
-          {
-            userId: user?._id,
-            items: Carts,
-            lastUpdated: Date.now(),
-            username: address?.name,
-            mobile: user?.Mobile,
-            companId: user?.companyId,
-          }
-        );
+        let res = await axios.post("http://localhost:7013/api/cart/addCart", {
+          userId: user?._id,
+          items: Carts,
+          lastUpdated: Date.now(),
+          username: address?.name,
+          mobile: user?.Mobile,
+          companId: user?.companyId,
+        });
         if (res.status === 200) {
           setAdCartId(res.data);
         }
@@ -581,18 +581,15 @@ const Checkout = () => {
     location
   ) => {
     try {
-      await axios.post(
-        "http://localhost:7013/api/admin/createreports",
-        {
-          customerName,
-          phone,
-          totalOrders,
-          product,
-          cartValue,
-          offerPrice,
-          location,
-        }
-      );
+      await axios.post("http://localhost:7013/api/admin/createreports", {
+        customerName,
+        phone,
+        totalOrders,
+        product,
+        cartValue,
+        offerPrice,
+        location,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -650,6 +647,25 @@ const Checkout = () => {
         return;
       }
 
+      if (!defaultAddress) {
+        setLoading(false);
+        Swal2.fire({
+          toast: true,
+          position: "bottom",
+          icon: "info",
+          title: "Cart Alert",
+          text: `Please add address`,
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          customClass: {
+            popup: "me-small-toast",
+            title: "me-small-toast-title",
+          },
+        });
+        return;
+      }
+
       if (!address?.name) {
         setLoading(false);
         Swal2.fire({
@@ -668,6 +684,25 @@ const Checkout = () => {
         });
         return;
       }
+
+      // if (!address?.name) {
+      //   setLoading(false);
+      //   Swal2.fire({
+      //     toast: true,
+      //     position: "bottom",
+      //     icon: "info",
+      //     title: "Address",
+      //     text: `Please enter your address`,
+      //     showConfirmButton: false,
+      //     timer: 3000,
+      //     timerProgressBar: true,
+      //     customClass: {
+      //       popup: "me-small-toast",
+      //       title: "me-small-toast-title",
+      //     },
+      //   });
+      //   return;
+      // }
       if (!addresstype) {
         setLoading(false);
         Swal2.fire({
@@ -790,16 +825,18 @@ const Checkout = () => {
           hubId: group.items[0]?.locationInfo?.hubId || address?.hubId || null,
           customerId: user?._id,
           Placedon: new Date(),
-          delivarylocation: address?.apartmentname,
+          delivarylocation: defaultAddress?.fullAddress,
           username: address?.name,
           Mobilenumber: Number(user?.Mobile),
           paymentmethod: paymentmethod,
           delivarytype: Number(delivarychargetype || 0),
           deliveryMethod: deliveryMethod || "slot",
           payid: "pay001",
-          addressline: `${address?.name} ${addresstype === "apartment" ? `${address?.flatno},` : ""
-            } ${addresstype === "apartment" ? `${address?.towerName},` : ""} ${address?.mobilenumber
-            }`,
+          addressline: `${address?.name} ${
+            addresstype === "apartment" ? `${address?.flatno},` : ""
+          } ${addresstype === "apartment" ? `${address?.towerName},` : ""} ${
+            address?.mobilenumber
+          }`,
           status: "Cooking",
           approximatetime:
             deliveryMethod === "express"
@@ -817,6 +854,10 @@ const Checkout = () => {
           studentName: storedInfo?.studentName,
           studentClass: storedInfo?.studentClass,
           studentSection: storedInfo?.studentSection,
+          addressType: defaultAddress?.addressType,
+          hubName: defaultAddress?.hubName,
+          hubId: defaultAddress?.hubId,
+          coordinates: defaultAddress?.location,
         };
       });
 
@@ -847,6 +888,10 @@ const Checkout = () => {
           studentName: storedInfo?.studentName,
           studentClass: storedInfo?.studentClass,
           studentSection: storedInfo?.studentSection,
+          addressType: defaultAddress?.addressType,
+          hubName: defaultAddress?.hubName,
+          hubId: defaultAddress?.hubId,
+          coordinates: defaultAddress?.location,
         },
       };
 
@@ -962,19 +1007,16 @@ const Checkout = () => {
   const saveSelectedAddress = async (data) => {
     try {
       if (!user) return;
-      await axios.post(
-        `http://localhost:7013/api/user/addressadd`,
-        {
-          Name: name,
-          Number: mobilenumber,
-          userId: user?._id,
-          ApartmentName: data?.apartmentname,
-          addresstype: addresstype,
-          addressid: data?._id,
-          fletNumber: flat,
-          towerName: towerName,
-        }
-      );
+      await axios.post(`http://localhost:7013/api/user/addressadd`, {
+        Name: name,
+        Number: mobilenumber,
+        userId: user?._id,
+        ApartmentName: data?.apartmentname,
+        addresstype: addresstype,
+        addressid: data?._id,
+        fletNumber: flat,
+        towerName: towerName,
+      });
     } catch (error) {
       console.log(error);
     }
@@ -1165,9 +1207,7 @@ const Checkout = () => {
   const [gstlist, setGstList] = useState([]);
   const getGst = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getgst"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getgst");
       if (res.status === 200) {
         setGstList(res.data.gst);
       }
@@ -1268,7 +1308,7 @@ const Checkout = () => {
       user?.status == "Employee"
         ? false
         : calculateTaxPrice + subtotal + Cutlery <=
-        walletSeting.minCartValueForWallet
+          walletSeting.minCartValueForWallet
     ) {
       Swal2.fire({
         toast: true,
@@ -1352,7 +1392,15 @@ const Checkout = () => {
   const toggleBillingDetails = () => {
     setIsBillingOpen(!isBillingOpen);
   };
+  const [addresses, setAddresses] = useState([]);
+  const [userData, setUserData] = useState([]);
 
+  const [alert, setAlert] = useState({ show: false, message: "", type: "" });
+
+  const showAlert = (message, type) => {
+    setAlert({ show: true, message, type });
+    setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
+  };
   // Clear all cart items for the active date+session (Delete slot)
   const clearSlot = () => {
     if (!activeDateKey || !activeSession) return;
@@ -1361,15 +1409,26 @@ const Checkout = () => {
     );
     if (removed.length === 0) return;
     const newCart = cartdata.filter(
-      (it) => !(it.deliveryDate === activeDateKey && it.session === activeSession)
+      (it) =>
+        !(it.deliveryDate === activeDateKey && it.session === activeSession)
     );
     localStorage.setItem("cart", JSON.stringify(newCart));
     // update local state immediately
     setCartData(newCart);
     // optional: let other listeners know
-    try { window.dispatchEvent(new Event("cart_updated")); } catch(e){/* noop */ }
+    try {
+      window.dispatchEvent(new Event("cart_updated"));
+    } catch (e) {
+      /* noop */
+    }
     console.log("Cleared slot items:", removed);
   };
+  const primaryAddress =
+    JSON.parse(localStorage.getItem("primaryAddress")) || {};
+  // const primaryAddress=JSON.parse(localStorage.getItem("currentLocation")??localStorage.getItem("primaryAddress"))
+
+  const defaultAddress = primaryAddress;
+  console.log("sfssssssssssssssssssss", defaultAddress);
 
   return (
     <div className="mainbg">
@@ -1420,13 +1479,28 @@ const Checkout = () => {
               disabled={
                 !activeDateKey ||
                 !activeSession ||
-                cartdata.filter((it) => it.deliveryDate === activeDateKey && it.session === activeSession).length === 0
+                cartdata.filter(
+                  (it) =>
+                    it.deliveryDate === activeDateKey &&
+                    it.session === activeSession
+                ).length === 0
               }
               className="delete-slot-button"
             >
-            <img src="/Assets/deleteBrown.svg" style={{ marginRight: '5px' }} alt="delete"
-            />
-              Delete slot ({cartdata.filter((it) => it.deliveryDate === activeDateKey && it.session === activeSession).length} items)
+              <img
+                src="/Assets/deleteBrown.svg"
+                style={{ marginRight: "5px" }}
+                alt="delete"
+              />
+              Delete slot (
+              {
+                cartdata.filter(
+                  (it) =>
+                    it.deliveryDate === activeDateKey &&
+                    it.session === activeSession
+                ).length
+              }{" "}
+              items)
             </button>
           </div>
 
@@ -1435,10 +1509,15 @@ const Checkout = () => {
               <div class="cart-section">
                 <div class="cart-content">
                   <div className="checkout-session-selector">
-                    <div className={`checkout-session-btn-wrapper ${activeSession === "Lunch" ? "active" : ""}`}>
+                    <div
+                      className={`checkout-session-btn-wrapper ${
+                        activeSession === "Lunch" ? "active" : ""
+                      }`}
+                    >
                       <button
-                        className={`checkout-session-btn ${activeSession === "Lunch" ? "active" : ""
-                          }`}
+                        className={`checkout-session-btn ${
+                          activeSession === "Lunch" ? "active" : ""
+                        }`}
                         onClick={() => setActiveSession("Lunch")}
                         disabled={!sessionsForActiveDate.includes("Lunch")}
                       >
@@ -1446,11 +1525,15 @@ const Checkout = () => {
                         <span>12:00pm to 04:00pm</span>
                       </button>
                     </div>
-                    <div className={`checkout-session-btn-wrapper  ${activeSession === "Dinner" ? "active" : ""
-                      }`}>
+                    <div
+                      className={`checkout-session-btn-wrapper  ${
+                        activeSession === "Dinner" ? "active" : ""
+                      }`}
+                    >
                       <button
-                        className={`checkout-session-btn ${activeSession === "Dinner" ? "active" : ""
-                          }`}
+                        className={`checkout-session-btn ${
+                          activeSession === "Dinner" ? "active" : ""
+                        }`}
                         onClick={() => setActiveSession("Dinner")}
                         disabled={!sessionsForActiveDate.includes("Dinner")}
                       >
@@ -1682,8 +1765,9 @@ const Checkout = () => {
                 {addresstype === "apartment" ? (
                   <>
                     <div
-                      className={`leftcard ${selectedOption === "Door" ? "active" : ""
-                        }`}
+                      className={`leftcard ${
+                        selectedOption === "Door" ? "active" : ""
+                      }`}
                       onClick={() =>
                         handleSelection(address?.doordelivarycharge, "Door")
                       }
@@ -1722,8 +1806,9 @@ const Checkout = () => {
                       </div>
                     </div>
                     <div
-                      className={`rightcard ${selectedOption === "Gate/Tower" ? "active" : ""
-                        }`}
+                      className={`rightcard ${
+                        selectedOption === "Gate/Tower" ? "active" : ""
+                      }`}
                       onClick={() =>
                         handleSelection(address?.Delivarycharge, "Gate/Tower")
                       }
@@ -1764,8 +1849,9 @@ const Checkout = () => {
                   </>
                 ) : (
                   <div
-                    className={`rightcard ${selectedOption === "Gate/Tower" ? "active" : ""
-                      }`}
+                    className={`rightcard ${
+                      selectedOption === "Gate/Tower" ? "active" : ""
+                    }`}
                     onClick={() =>
                       handleSelection(address?.Delivarycharge, "Gate/Tower")
                     }
@@ -1926,16 +2012,61 @@ const Checkout = () => {
 
               {/* Content */}
               <div className="delivery-content-wrapper">
-                <h5 className="delivery-title-address">
-                  #65 House Name, 6th cross Ashoknagar, Bangalore, Near HMT ,
-                  5...
-                </h5>
-                {/* <p className="delivery-address-subtitle">
-                  Mr Username | +91-9087654321
-                </p> */}
+                <p
+                  className="select-location-text fw-semibold text-truncate mb-0"
+                  style={{ maxWidth: "220px", color: "black" }}
+                  title={
+                    defaultAddress?.addressType === "Home"
+                      ? defaultAddress?.homeName
+                      : defaultAddress?.addressType === "PG"
+                      ? defaultAddress?.apartmentName
+                      : defaultAddress?.addressType === "School"
+                      ? defaultAddress?.schoolName
+                      : defaultAddress?.addressType === "Work"
+                      ? defaultAddress?.companyName
+                      : defaultAddress?.houseName || "No default address"
+                  }
+                >
+                  {defaultAddress?.addressType === "Home"
+                    ? defaultAddress?.homeName
+                    : defaultAddress?.addressType === "PG"
+                    ? defaultAddress?.apartmentName
+                    : defaultAddress?.addressType === "School"
+                    ? defaultAddress?.schoolName
+                    : defaultAddress?.addressType === "Work"
+                    ? defaultAddress?.companyName
+                    : defaultAddress?.houseName || "No default address"}
+                </p>
+                <p
+                  className="small text-truncate mb-0"
+                  style={{
+                    maxWidth: "280px",
+                    color: "black", // ✅ 80% white
+                  }}
+                  title={defaultAddress?.fullAddress}
+                >
+                  {defaultAddress?.fullAddress || ""}
+                </p>
+
                 <div class="caption-section" data-text-role="Caption">
                   <div class="user-detailss mt-1">
                     {address?.name || address?.Fname} | {user.Mobile}
+                  </div>
+                  <div class="user-detailss mt-1  ">
+                    {defaultAddress?.addressType === "School" ? (
+                      <div className="d-flex gap-1">
+                        <p>{defaultAddress?.studentInformation?.schoolName}</p>
+                        <p>{defaultAddress?.studentInformation?.studentName}</p>
+                        <p>
+                          {defaultAddress?.studentInformation?.studentClass}
+                        </p>
+                        <p>
+                          {defaultAddress?.studentInformation?.studentSection}
+                        </p>
+                      </div>
+                    ) : (
+                      ""
+                    )}
                   </div>
                 </div>
                 {address.locationType === "school" && (
@@ -1971,18 +2102,7 @@ const Checkout = () => {
                 <div class="change-badge" data-text-role="Badge/Chip">
                   <div class="change-text">
                     <span
-                      onClick={() => {
-                        setFlat(
-                          addresstype === "apartment" ? address?.flatno : ""
-                        );
-                        setTowerName(
-                          addresstype === "apartment" ? address?.towerName : ""
-                        );
-                        setname(address?.name);
-                        setApartmentname(address?.apartmentname);
-                        setmobilenumber(address?.mobilenumber);
-                        handleShow();
-                      }}
+                      onClick={() => setShowLocationModal(true)}
                       style={{ cursor: "pointer" }}
                     >
                       Change
@@ -2167,9 +2287,9 @@ const Checkout = () => {
                         Math.min(
                           walletSeting?.minCartValueForWallet || 0,
                           (walletSeting?.minCartValueForWallet || 0) -
-                          (Number(calculateTaxPrice) +
-                            Number(subtotal) +
-                            Number(Cutlery) || 0)
+                            (Number(calculateTaxPrice) +
+                              Number(subtotal) +
+                              Number(Cutlery) || 0)
                         )
                       )}{" "}
                       more to use
@@ -2190,8 +2310,9 @@ const Checkout = () => {
                 <img
                   src="/Assets/expanddown.svg"
                   alt="Toggle"
-                  className={`expandable-chevron ${isBillingOpen ? "open" : ""
-                    }`}
+                  className={`expandable-chevron ${
+                    isBillingOpen ? "open" : ""
+                  }`}
                 />
               </span>
             </span>
@@ -2345,9 +2466,9 @@ const Checkout = () => {
             </Button>
           </div>
         </div>
-      </div >
+      </div>
 
-      <Modal show={show} style={{ zIndex: "99999" }}>
+      {/* <Modal show={show} style={{ zIndex: "99999" }}>
         <Modal.Header>
           <Modal.Title>Add Address</Modal.Title>
         </Modal.Header>
@@ -2451,7 +2572,7 @@ const Checkout = () => {
             </Button>
           </Form>
         </Modal.Body>
-      </Modal>
+      </Modal> */}
       <Modal
         show={showSecurityModal}
         onHide={() => setShowSecurityModal(false)}
@@ -2542,181 +2663,183 @@ const Checkout = () => {
       </Modal>
 
       {/* Modal */}
-      {
-        showModal && (
+      {showModal && (
+        <div
+          className="modal show fade d-block"
+          tabIndex="-1"
+          role="dialog"
+          style={{
+            backgroundColor: "rgba(0,0,0,0.5)",
+            boxShadow: "1px 0px 4px 0px #00000040",
+          }}
+        >
           <div
-            className="modal show fade d-block"
-            tabIndex="-1"
-            role="dialog"
+            className="modal-dialog"
+            role="document"
             style={{
-              backgroundColor: "rgba(0,0,0,0.5)",
-              boxShadow: "1px 0px 4px 0px #00000040",
+              maxWidth: window.innerWidth > 768 ? "605px" : "402px", // ✅ Responsive width
+              height: "auto",
+              margin: "auto",
             }}
           >
             <div
-              className="modal-dialog"
-              role="document"
+              className="modal-content"
               style={{
-                maxWidth: window.innerWidth > 768 ? "605px" : "402px", // ✅ Responsive width
-                height: "auto",
-                margin: "auto",
+                backgroundColor: "#F8F6F0",
+                borderRadius: "16px",
+                padding: window.innerWidth > 768 ? "30px 40px" : "20px", // ✅ More padding on large screen
               }}
             >
-              <div
-                className="modal-content"
+              <p
                 style={{
-                  backgroundColor: "#F8F6F0",
-                  borderRadius: "16px",
-                  padding: window.innerWidth > 768 ? "30px 40px" : "20px", // ✅ More padding on large screen
+                  fontSize: window.innerWidth > 768 ? "14px" : "13px",
+                  marginBottom: "12px",
+                  textAlign: "start",
+                  color: "#6B6B6B",
+                  padding: "15px",
                 }}
               >
-                <p
+                <ShieldAlert
+                  style={{ width: "13px", height: "13px" }}
+                  className="mb-1"
+                />{" "}
+                Safe & private: details are only used to deliver correctly.
+              </p>
+
+              <form onSubmit={handleSubmit}>
+                <div
+                  className="d-flex flex-column align-items-center mt-2"
                   style={{
-                    fontSize: window.innerWidth > 768 ? "14px" : "13px",
-                    marginBottom: "12px",
-                    textAlign: "start",
-                    color: "#6B6B6B",
-                    padding: "15px",
+                    gap: "12px",
+                    backgroundColor: "#FFF8DC",
+                    padding: "20px",
+                    borderRadius: "12px",
+                    border: "0.4px solid #B87333",
+                    width: "100%",
+                    maxWidth: window.innerWidth > 768 ? "500px" : "354px", // ✅ Keep consistent alignment
+                    margin: "0 auto",
                   }}
                 >
-                  <ShieldAlert
-                    style={{ width: "13px", height: "13px" }}
-                    className="mb-1"
-                  />{" "}
-                  Safe & private: details are only used to deliver correctly.
-                </p>
-
-                <form onSubmit={handleSubmit}>
-                  <div
-                    className="d-flex flex-column align-items-center mt-2"
+                  {/* Student Name */}
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Student’s full name *"
+                    value={childName}
+                    onChange={(e) => setChildName(e.target.value)}
+                    required
                     style={{
-                      gap: "12px",
-                      backgroundColor: "#FFF8DC",
-                      padding: "20px",
+                      width: "100%", // ✅ auto adjusts for both screens
+                      height: "44px",
                       borderRadius: "12px",
-                      border: "0.4px solid #B87333",
-                      width: "100%",
-                      maxWidth: window.innerWidth > 768 ? "500px" : "354px", // ✅ Keep consistent alignment
-                      margin: "0 auto",
+                      padding: "8px 16px",
+                      border: "0.4px solid #6B8E23",
+                    }}
+                  />
+
+                  {/* Class and Section Row */}
+                  <div
+                    className="d-flex justify-content-between"
+                    style={{
+                      width: "100%", // ✅ uniform width for both inputs
+                      gap: "12px",
                     }}
                   >
-                    {/* Student Name */}
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="Student’s full name *"
-                      value={childName}
-                      onChange={(e) => setChildName(e.target.value)}
+                      placeholder="Class/ Room number *"
+                      value={childClass}
+                      onChange={(e) => setChildClass(e.target.value)}
                       required
                       style={{
-                        width: "100%", // ✅ auto adjusts for both screens
+                        flex: 1, // ✅ both inputs share space evenly
                         height: "44px",
                         borderRadius: "12px",
                         padding: "8px 16px",
                         border: "0.4px solid #6B8E23",
                       }}
                     />
-
-                    {/* Class and Section Row */}
-                    <div
-                      className="d-flex justify-content-between"
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Section *"
+                      value={childSection}
+                      onChange={(e) => setChildSection(e.target.value)}
+                      required
                       style={{
-                        width: "100%", // ✅ uniform width for both inputs
-                        gap: "12px",
+                        flex: 1,
+                        height: "44px",
+                        borderRadius: "12px",
+                        padding: "8px 16px",
+                        border: "0.4px solid #6B8E23",
                       }}
-                    >
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Class/ Room number *"
-                        value={childClass}
-                        onChange={(e) => setChildClass(e.target.value)}
-                        required
-                        style={{
-                          flex: 1, // ✅ both inputs share space evenly
-                          height: "44px",
-                          borderRadius: "12px",
-                          padding: "8px 16px",
-                          border: "0.4px solid #6B8E23",
-                        }}
-                      />
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Section *"
-                        value={childSection}
-                        onChange={(e) => setChildSection(e.target.value)}
-                        required
-                        style={{
-                          flex: 1,
-                          height: "44px",
-                          borderRadius: "12px",
-                          padding: "8px 16px",
-                          border: "0.4px solid #6B8E23",
-                        }}
-                      />
-                    </div>
+                    />
                   </div>
+                </div>
 
-                  {/* Footer Buttons */}
-                  <div
-                    className="d-flex justify-content-between align-items-center mt-4"
+                {/* Footer Buttons */}
+                <div
+                  className="d-flex justify-content-between align-items-center mt-4"
+                  style={{
+                    padding: window.innerWidth > 768 ? "0 15px" : "0 10px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => setShowModal(false)}
                     style={{
-                      padding: window.innerWidth > 768 ? "0 15px" : "0 10px",
+                      backgroundColor: "transparent",
+                      border: "1px solid #d5c5b0",
+                      borderRadius: "12px",
+                      width: window.innerWidth > 768 ? "160px" : "120px",
+                      height: "48px",
+                      fontWeight: "600",
+                      textAlign: "center",
                     }}
                   >
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => setShowModal(false)}
-                      style={{
-                        backgroundColor: "transparent",
-                        border: "1px solid #d5c5b0",
-                        borderRadius: "12px",
-                        width: window.innerWidth > 768 ? "160px" : "120px",
-                        height: "48px",
-                        fontWeight: "600",
-                        textAlign: "center",
-                      }}
-                    >
-                      Cancel <img src={cross} alt="" />
-                    </button>
+                    Cancel <img src={cross} alt="" />
+                  </button>
 
-                    <button
-                      type="submit"
-                      className="btn"
-                      style={{
-                        backgroundColor:
-                          childName && childClass && childSection
-                            ? "#E6B800"
-                            : "#C0C0C0",
-                        borderRadius: "12px",
-                        textAlign: "center",
-                        width: window.innerWidth > 768 ? "200px" : "160px",
-                        height: "48px",
-                        fontWeight: "600",
-                        color:
-                          childName && childClass && childSection
-                            ? "black"
-                            : "black",
-                        cursor:
-                          childName && childClass && childSection
-                            ? "pointer"
-                            : "not-allowed",
-                      }}
-                      disabled={!childName || !childClass || !childSection}
-                    >
-                      Save Address{" "}
-                      <CircleCheck style={{ width: "17px", height: "17px" }} />
-                    </button>
-                  </div>
-                </form>
-              </div>
+                  <button
+                    type="submit"
+                    className="btn"
+                    style={{
+                      backgroundColor:
+                        childName && childClass && childSection
+                          ? "#E6B800"
+                          : "#C0C0C0",
+                      borderRadius: "12px",
+                      textAlign: "center",
+                      width: window.innerWidth > 768 ? "200px" : "160px",
+                      height: "48px",
+                      fontWeight: "600",
+                      color:
+                        childName && childClass && childSection
+                          ? "black"
+                          : "black",
+                      cursor:
+                        childName && childClass && childSection
+                          ? "pointer"
+                          : "not-allowed",
+                    }}
+                    disabled={!childName || !childClass || !childSection}
+                  >
+                    Save Address{" "}
+                    <CircleCheck style={{ width: "17px", height: "17px" }} />
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        )
-      }
-    </div >
+        </div>
+      )}
+      <LocationModal
+        show={showLocationModal}
+        onClose={() => setShowLocationModal(false)}
+      />
+    </div>
   );
 };
 

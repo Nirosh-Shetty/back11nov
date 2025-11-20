@@ -57,7 +57,7 @@ class HubMenuController {
         menuDate: new Date(menuDate),
         session: session,
       })
-      .populate("productId", "foodname foodcategory Foodgallery basePrice") // Get product details
+      .populate("productId", "foodname foodcategory Foodgallery basePrice menuCategory aggregatedPrice") // Get product details
       .populate("hubId", "hubName") // Get hub name
       .sort({ hubPriority: 1 }); // Sort by priority
        console.log("menuItems", menuItems);

@@ -25,8 +25,7 @@ import { Link } from "react-router-dom";
 
 // Constants
 const API_BASE_URL = "http://localhost:7013/api/packer";
-const ADMIN_ORDERS_URL =
-  "http://localhost:7013/api/admin/getPackerOrders2";
+const ADMIN_ORDERS_URL = "http://localhost:7013/api/admin/getPackerOrders2";
 const PACKING_GROUPED_URL = `${API_BASE_URL}/packing/today/grouped`;
 const HUBS_API_URL = "http://localhost:7013/api/Hub/hubs";
 const SWR_KEY = "packer:combined";

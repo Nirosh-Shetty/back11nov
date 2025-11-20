@@ -8,7 +8,7 @@ const CartSchema = new Schema(
       type: ObjectId,
       ref: "Customer", // Assuming you have a Customer model
       required: true,
-    }, 
+    },
    foodItemId: {
     type: String,
     },

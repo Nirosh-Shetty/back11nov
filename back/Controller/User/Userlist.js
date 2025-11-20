@@ -15,7 +15,6 @@ const { default: axios } = require("axios");
 const { uploadFile2 } = require("../../Midleware/AWS");
 const HubMenuModel = require("../../Model/Admin/HubMenu");
 const AddproductModel = require("../../Model/Admin/Addproduct");
-
 class Customer {
   async loginWithOtp(req, res) {
     const { Mobile } = req.body;
@@ -707,6 +706,150 @@ class Customer {
     }
   }
 
+  // Alternative version with more detailed population
+// async getCustomerByIdDetailed  (req, res) {
+//   try {
+//     const { id } = req.params;
+
+//     if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Valid customer ID is required"
+//       });
+//     }
+
+//     const customer = await CustomerModel.findById(id)
+//       .populate({
+//         path: 'referral.referredBy',
+//         select: 'Fname Mobile Email profileImage',
+//         model: 'Customer'
+//       })
+//       .populate({
+//         path: 'addresses.hubId',
+//         select: 'name location address contactNumber',
+//         model: 'Hub'
+//       })
+//       .populate('primaryAddress')
+//       .select('-otp -token -__v') // Exclude sensitive and unnecessary fields
+//       .lean(); // Use lean() for better performance if you don't need mongoose document features
+
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     // Transform the data if needed (optional)
+//     const transformedCustomer = {
+//       ...customer,
+//       // You can add any data transformations here
+//       fullName: customer.Fname,
+//       // Calculate derived fields if needed
+//       hasReferral: customer.referral && customer.referral.status === "success",
+//       activeAddresses: customer.addresses ? customer.addresses.filter(addr => addr.isActive) : []
+//     };
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Customer retrieved successfully",
+//       data: transformedCustomer
+//     });
+
+//   } catch (error) {
+//     console.error("Error in getCustomerByIdDetailed:", error);
+    
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to retrieve customer",
+//       error: process.env.NODE_ENV === 'development' ? error.message : undefined
+//     });
+//   }
+// };
+
+
+async getCustomerByIdDetailed(req, res) {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid customer ID is required"
+      });
+    }
+
+    const customer = await CustomerModel.findById(id)
+      .populate({
+        path: 'referral.referredBy',
+        select: 'Fname Mobile Email profileImage',
+        model: 'Customer'
+      })
+      .populate({
+        path: 'addresses.hubId',
+        select: 'name location address contactNumber',
+        model: 'Hub'
+      })
+      .select('-otp -token -__v')
+      .lean();
+
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    // Sort addresses by createdAt in descending order (newest first)
+    let sortedAddresses = [];
+    if (customer.addresses && customer.addresses.length > 0) {
+      sortedAddresses = customer.addresses.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a._id.getTimestamp());
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b._id.getTimestamp());
+        return dateB - dateA; // Newest first
+      });
+    }
+
+    // Find primary address
+    let primaryAddress = null;
+    if (customer.primaryAddress && sortedAddresses.length > 0) {
+      primaryAddress = sortedAddresses.find(
+        addr => addr._id.toString() === customer.primaryAddress.toString()
+      );
+    }
+
+    // If no primary address found but there are addresses, use the first one as default
+    if (!primaryAddress && sortedAddresses.length > 0) {
+      primaryAddress = sortedAddresses[0];
+    }
+
+    // Transform the data
+    const transformedCustomer = {
+      ...customer,
+      addresses: sortedAddresses,
+      fullName: customer.Fname,
+      hasReferral: customer.referral && customer.referral.status === "success",
+      activeAddresses: sortedAddresses.filter(addr => addr.isActive !== false),
+      primaryAddress: primaryAddress
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Customer retrieved successfully",
+      data: transformedCustomer
+    });
+
+  } catch (error) {
+    console.error("Error in getCustomerByIdDetailed:", error);
+    
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve customer",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+}
+
   // Export all users for Excel (chunked for large datasets)
   async exportAllUsers(req, res) {
     try {
@@ -1100,453 +1243,1014 @@ class Customer {
     }
   }
 
-  //   async addAddress(req, res) {
-  //   try {
-  //     const {
-  //       customerId,
-  //       addressType,
-  //       houseName,
-  //       apartmentName,
-  //       schoolName,
-  //       companyName,
-  //       homeName,
-  //       landmark,
-  //       floor,
-  //       towerBlock,
-  //       flat,
-  //       studentName,
-  //       studentClass,
-  //       studentSection,
-  //       floorNo,
-  //       location,
-  //       fullAddress,
-  //       isDefault = false
-  //     } = req.body;
-
-  //     // Validate required fields
-  //     if (!customerId || !addressType || !houseName || !fullAddress || !location) {
-  //       return res.status(400).json({
-  //         success: false,
-  //         message: "Customer ID, address type, house name, full address, and location are required"
-  //       });
-  //     }
-
-  //     // Validate location coordinates
-  //     if (!location.lat || !location.lng) {
-  //       return res.status(400).json({
-  //         success: false,
-  //         message: "Location coordinates (lat and lng) are required"
-  //       });
-  //     }
-
-  //     // Find customer
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     // Prepare address data
-  //     const addressData = {
-  //       addressType,
-  //       houseName,
-  //       fullAddress,
-  //       location: {
-  //         type: 'Point',
-  //         coordinates: [location.lng, location.lat]
-  //       },
-  //       landmark: landmark || "",
-  //       floor: floor || "",
-  //       isDefault
-  //     };
-
-  //     // Add type-specific validation and fields
-  //     switch (addressType) {
-  //       case "PG":
-  //         if (!towerBlock || !flat) {
-  //           return res.status(400).json({
-  //             success: false,
-  //             message: "Tower/Block and Flat are required for PG address"
-  //           });
-  //         }
-  //         addressData.apartmentName = apartmentName;
-  //         addressData.towerBlock = towerBlock;
-  //         addressData.flat = flat;
-  //         break;
-
-  //       case "School":
-  //         if (!studentName || !studentClass || !studentSection) {
-  //           return res.status(400).json({
-  //             success: false,
-  //             message: "Student name, class, and section are required for School address"
-  //           });
-  //         }
-  //         addressData.studentInformation = {
-  //           schoolName,
-  //           studentName,
-  //           studentClass,
-  //           studentSection
-  //         };
-  //         break;
-
-  //       case "Work":
-  //         if (!floorNo) {
-  //           return res.status(400).json({
-  //             success: false,
-  //             message: "Floor number is required for Work address"
-  //           });
-  //         }
-  //         addressData.floorNo = floorNo;
-  //         break;
-
-  //       case "Home":
-  //         // No additional required fields for Home
-  //         break;
-
-  //       default:
-  //         return res.status(400).json({
-  //           success: false,
-  //           message: "Invalid address type. Must be Home, PG, School, or Work"
-  //         });
-  //     }
-
-  //     // If setting as default, unset other defaults
-  //     if (isDefault) {
-  //       customer.addresses.forEach(addr => {
-  //         addr.isDefault = false;
-  //       });
-  //     }
-
-  //     // Add new address
-  //     customer.addresses.push(addressData);
-
-  //     // If this is the first address, set it as primary
-  //     if (customer.addresses.length === 1) {
-  //       customer.primaryAddress = customer.addresses[0]._id;
-  //     }
-
-  //     await customer.save();
-
-  //     const newAddress = customer.addresses[customer.addresses.length - 1];
-
-  //     return res.status(201).json({
-  //       success: true,
-  //       message: "Address added successfully",
-  //       address: newAddress
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Add address error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
-
-  // // Get all addresses for a customer
-  // async getAddresses(req, res) {
-  //   try {
-  //     const { customerId } = req.params;
-
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     return res.status(200).json({
-  //       success: true,
-  //       addresses: customer.addresses,
-  //       primaryAddress: customer.primaryAddress
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Get addresses error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
-
-  // // Update address
-  // async updateAddress(req, res) {
-  //   try {
-  //     const { customerId, addressId } = req.params;
-  //     const updateData = req.body;
-
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     const addressIndex = customer.addresses.findIndex(
-  //       addr => addr._id.toString() === addressId
-  //     );
-
-  //     if (addressIndex === -1) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Address not found"
-  //       });
-  //     }
-
-  //     // Handle isDefault update
-  //     if (updateData.isDefault) {
-  //       customer.addresses.forEach(addr => {
-  //         addr.isDefault = false;
-  //       });
-  //     }
-
-  //     // Update address
-  //     customer.addresses[addressIndex] = {
-  //       ...customer.addresses[addressIndex].toObject(),
-  //       ...updateData
-  //     };
-
-  //     await customer.save();
-
-  //     return res.status(200).json({
-  //       success: true,
-  //       message: "Address updated successfully",
-  //       address: customer.addresses[addressIndex]
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Update address error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
-
-  // // Delete address
-  // async deleteAddress(req, res) {
-  //   try {
-  //     const { customerId, addressId } = req.params;
-
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     const addressIndex = customer.addresses.findIndex(
-  //       addr => addr._id.toString() === addressId
-  //     );
-
-  //     if (addressIndex === -1) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Address not found"
-  //       });
-  //     }
-
-  //     // Check if this is the primary address
-  //     const isPrimary = customer.primaryAddress?.toString() === addressId;
-
-  //     // Remove address
-  //     customer.addresses.splice(addressIndex, 1);
-
-  //     // If primary address was deleted, set a new one
-  //     if (isPrimary && customer.addresses.length > 0) {
-  //       customer.primaryAddress = customer.addresses[0]._id;
-  //       customer.addresses[0].isDefault = true;
-  //     } else if (customer.addresses.length === 0) {
-  //       customer.primaryAddress = null;
-  //     }
-
-  //     await customer.save();
-
-  //     return res.status(200).json({
-  //       success: true,
-  //       message: "Address deleted successfully"
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Delete address error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
-
-  // // Set primary address
-  // async setPrimaryAddress(req, res) {
-  //   try {
-  //     const { customerId, addressId } = req.params;
-
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     const address = customer.addresses.find(
-  //       addr => addr._id.toString() === addressId
-  //     );
-
-  //     if (!address) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Address not found"
-  //       });
-  //     }
-
-  //     // Update all addresses to not default
-  //     customer.addresses.forEach(addr => {
-  //       addr.isDefault = false;
-  //     });
-
-  //     // Set the selected address as default and primary
-  //     address.isDefault = true;
-  //     customer.primaryAddress = address._id;
-
-  //     await customer.save();
-
-  //     return res.status(200).json({
-  //       success: true,
-  //       message: "Primary address set successfully",
-  //       primaryAddress: address
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Set primary address error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
-
-  // // Get address by ID
-  // async getAddressById(req, res) {
-  //   try {
-  //     const { customerId, addressId } = req.params;
-
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     const address = customer.addresses.find(
-  //       addr => addr._id.toString() === addressId
-  //     );
-
-  //     if (!address) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Address not found"
-  //       });
-  //     }
-
-  //     return res.status(200).json({
-  //       success: true,
-  //       address
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Get address by ID error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
-
-  // // Get addresses by type
-  // async getAddressesByType(req, res) {
-  //   try {
-  //     const { customerId, addressType } = req.params;
-
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     const filteredAddresses = customer.addresses.filter(
-  //       addr => addr.addressType === addressType
-  //     );
-
-  //     return res.status(200).json({
-  //       success: true,
-  //       addresses: filteredAddresses,
-  //       count: filteredAddresses.length
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Get addresses by type error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
-
-  // // Get default address
-  // async getDefaultAddress(req, res) {
-  //   try {
-  //     const { customerId } = req.params;
-
-  //     const customer = await CustomerModel.findById(customerId);
-  //     if (!customer) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "Customer not found"
-  //       });
-  //     }
-
-  //     const defaultAddress = customer.addresses.find(addr => addr.isDefault);
-
-  //     if (!defaultAddress) {
-  //       return res.status(404).json({
-  //         success: false,
-  //         message: "No default address found"
-  //       });
-  //     }
-
-  //     return res.status(200).json({
-  //       success: true,
-  //       address: defaultAddress
-  //     });
-
-  //   } catch (error) {
-  //     console.error("Get default address error:", error);
-  //     return res.status(500).json({
-  //       success: false,
-  //       message: "Internal server error",
-  //       error: error.message
-  //     });
-  //   }
-  // }
 
+
+// Add addresses for a customer
+// async addAddress(req, res) {
+//   try {
+//     const {
+//       customerId,
+//       addressType,
+//       houseName,
+//       apartmentName,
+//       schoolName,
+//       companyName,
+//       homeName,
+//       landmark,
+//       floor,
+//       towerBlock,
+//       flat,
+//       studentName,
+//       studentClass,
+//       studentSection,
+//       floorNo,
+//       location,
+//       fullAddress,
+//       hubName,
+//       hubId,
+//       // isDefault = false
+//     } = req.body;
+
+//     // Validate required fields
+//     if (!customerId || !addressType || !houseName || !fullAddress || !location) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Customer ID, address type, house name, full address, and location are required"
+//       });
+//     }
+
+//     // Validate location coordinates
+//     if (!location.lat || !location.lng) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Location coordinates (lat and lng) are required"
+//       });
+//     }
+
+//     // Find customer
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     // Prepare address data
+//     const addressData = {
+//       addressType,
+//       houseName,
+//       fullAddress,
+//       location: {
+//         type: 'Point',
+//         coordinates: [location.lng, location.lat]
+//       },
+//       landmark: landmark || "",
+//       floor: floor || "",
+//       // isDefault,
+//       hubName: hubName || "",
+//       hubId: (hubId && hubId.trim() !== "") ? hubId : null
+//     };
+
+//     // Add type-specific fields
+//     switch (addressType) {
+//       case "Home":
+//         if (!homeName) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "Home name is required for Home address"
+//           });
+//         }
+//         addressData.homeName = homeName;
+//         break;
+
+//       case "PG":
+//         if (!apartmentName || !towerBlock || !flat) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "Apartment name, Tower/Block and Flat are required for PG address"
+//           });
+//         }
+//         addressData.apartmentName = apartmentName;
+//         addressData.towerBlock = towerBlock;
+//         addressData.flat = flat;
+//         break;
+
+//       case "School":
+//         if (!schoolName || !studentName || !studentClass || !studentSection) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "School name, student name, class, and section are required for School address"
+//           });
+//         }
+//         addressData.schoolName = schoolName;
+//         addressData.studentInformation = {
+//           studentName,
+//           studentClass,
+//           studentSection
+//         };
+//         break;
+
+//       case "Work":
+//         if (!companyName || !floorNo) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "Company name and floor number are required for Work address"
+//           });
+//         }
+//         addressData.companyName = companyName;
+//         addressData.floorNo = floorNo;
+//         break;
+
+//       default:
+//         return res.status(400).json({
+//           success: false,
+//           message: "Invalid address type. Must be Home, PG, School, or Work"
+//         });
+//     }
+
+//     // If setting as default, unset other defaults
+//     // if (isDefault) {
+//     //   customer.addresses.forEach(addr => {
+//     //     addr.isDefault = false;
+//     //   });
+//     // }
+
+//     // Add new address
+//     customer.addresses.push(addressData);
+
+//     // Get the newly added address
+//     const newAddress = customer.addresses[customer.addresses.length - 1];
+
+//     // If this is the first address OR if it's set as default, set it as primary
+//     if (customer.addresses.length === 1 || isDefault) {
+//       customer.primaryAddress = newAddress._id;
+//       newAddress.isDefault = true;
+//     }
+
+//     await customer.save();
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Address added successfully",
+//       address: newAddress
+//     });
+
+//   } catch (error) {
+//     console.error("Add address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+
+// async addAddress(req, res) {
+//   try {
+//     const {
+//       customerId,
+//       addressType,
+//       houseName,
+//       apartmentName,
+//       schoolName,
+//       companyName,
+//       homeName,
+//       landmark,
+//       floor,
+//       towerBlock,
+//       flat,
+//       studentName,
+//       studentClass,
+//       studentSection,
+//       floorNo,
+//       location,
+//       fullAddress,
+//       hubName,
+//       hubId
+//     } = req.body;
+
+//     // Validate required fields
+//     if (!customerId || !addressType || !houseName || !fullAddress || !location) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Customer ID, address type, house name, full address, and location are required"
+//       });
+//     }
+
+//     // Validate location coordinates
+//     if (!location.lat || !location.lng) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Location coordinates (lat and lng) are required"
+//       });
+//     }
+
+//     // Find customer
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     // Prepare address data
+//     const addressData = {
+//       addressType,
+//       houseName,
+//       fullAddress,
+//       location: {
+//         type: 'Point',
+//         coordinates: [location.lng, location.lat]
+//       },
+//       landmark: landmark || "",
+//       floor: floor || "",
+//       hubName: hubName || "",
+//       hubId: (hubId && hubId.trim() !== "") ? hubId : null
+//     };
+
+//     // Add type-specific fields
+//     switch (addressType) {
+//       case "Home":
+//         if (!homeName) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "Home name is required for Home address"
+//           });
+//         }
+//         addressData.homeName = homeName;
+//         break;
+
+//       case "PG":
+//         if (!apartmentName || !towerBlock || !flat) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "Apartment name, Tower/Block and Flat are required for PG address"
+//           });
+//         }
+//         addressData.apartmentName = apartmentName;
+//         addressData.towerBlock = towerBlock;
+//         addressData.flat = flat;
+//         break;
+
+//       case "School":
+//         if (!schoolName || !studentName || !studentClass || !studentSection) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "School name, student name, class, and section are required for School address"
+//           });
+//         }
+//         addressData.schoolName = schoolName;
+//         addressData.studentInformation = {
+//           studentName,
+//           studentClass,
+//           studentSection
+//         };
+//         break;
+
+//       case "Work":
+//         if (!companyName || !floorNo) {
+//           return res.status(400).json({
+//             success: false,
+//             message: "Company name and floor number are required for Work address"
+//           });
+//         }
+//         addressData.companyName = companyName;
+//         addressData.floorNo = floorNo;
+//         break;
+
+//       default:
+//         return res.status(400).json({
+//           success: false,
+//           message: "Invalid address type. Must be Home, PG, School, or Work"
+//         });
+//     }
+
+//     // Add new address
+//     customer.addresses.push(addressData);
+
+//     // Get the newly added address
+//     const newAddress = customer.addresses[customer.addresses.length - 1];
+
+//     // If this is the first address, set it as primary
+//     if (customer.addresses.length === 1) {
+//       customer.primaryAddress = newAddress._id;
+//     }
+
+//     await customer.save();
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Address added successfully",
+//       address: newAddress
+//     });
+
+//   } catch (error) {
+//     console.error("Add address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+
+// // Get addresses
+// async getAddresses(req, res) {
+//   try {
+//     const { customerId } = req.params;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       addresses: customer.addresses,
+//       primaryAddress: customer.primaryAddress
+//     });
+
+//   } catch (error) {
+//     console.error("Get addresses error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+// // Set primary address - FIXED VERSION
+// async setPrimaryAddress(req, res) {
+//   try {
+//     const { customerId, addressId } = req.params;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     const address = customer.addresses.find(
+//       addr => addr._id.toString() === addressId
+//     );
+
+//     if (!address) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Address not found"
+//       });
+//     }
+
+//     // Update all addresses to not default
+//     customer.addresses.forEach(addr => {
+//       addr.isDefault = false;
+//     });
+
+//     // Set the selected address as default and primary
+//     address.isDefault = true;
+//     customer.primaryAddress = address._id;
+
+//     await customer.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Primary address set successfully",
+//       primaryAddress: address
+//     });
+
+//   } catch (error) {
+//     console.error("Set primary address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+// // Remove default address - FIXED VERSION
+// async removeDefaultAddress(req, res) {
+//   try {
+//     const { customerId, addressId } = req.params;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     const address = customer.addresses.find(
+//       addr => addr._id.toString() === addressId
+//     );
+
+//     if (!address) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Address not found"
+//       });
+//     }
+
+//     // Remove default status from this address
+//     address.isDefault = false;
+
+//     // If this was the primary address, set it to null
+//     if (customer.primaryAddress?.toString() === addressId) {
+//       customer.primaryAddress = null;
+//     }
+
+//     await customer.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Default address removed successfully",
+//       primaryAddress: customer.primaryAddress
+//     });
+
+//   } catch (error) {
+//     console.error("Remove default address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+// async updateAddress(req, res) {
+//   try {
+//     const { customerId, addressId } = req.params;
+//     const updateData = req.body;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     const addressIndex = customer.addresses.findIndex(
+//       addr => addr._id.toString() === addressId
+//     );
+
+//     if (addressIndex === -1) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Address not found"
+//       });
+//     }
+
+//     // Validate type-specific fields if address type is being updated
+//     if (updateData.addressType) {
+//       const addressType = updateData.addressType;
+//       switch (addressType) {
+//         case "Home":
+//           if (!updateData.homeName) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "Home name is required for Home address"
+//             });
+//           }
+//           break;
+//         case "PG":
+//           if (!updateData.apartmentName || !updateData.towerBlock || !updateData.flat) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "Apartment name, Tower/Block and Flat are required for PG address"
+//             });
+//           }
+//           break;
+//         case "School":
+//           if (!updateData.schoolName || !updateData.studentInformation?.studentName || 
+//               !updateData.studentInformation?.studentClass || !updateData.studentInformation?.studentSection) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "School name, student name, class, and section are required for School address"
+//             });
+//           }
+//           break;
+//         case "Work":
+//           if (!updateData.companyName || !updateData.floorNo) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "Company name and floor number are required for Work address"
+//             });
+//           }
+//           break;
+//       }
+//     }
+
+//     // Handle isDefault update
+//     if (updateData.isDefault === true) {
+//       customer.addresses.forEach(addr => {
+//         addr.isDefault = false;
+//       });
+//       customer.addresses[addressIndex].isDefault = true;
+//       customer.primaryAddress = customer.addresses[addressIndex]._id;
+//     } else if (updateData.isDefault === false) {
+//       customer.addresses[addressIndex].isDefault = false;
+//       if (customer.primaryAddress?.toString() === addressId) {
+//         customer.primaryAddress = null;
+//       }
+//     }
+
+//     // Update other fields
+//     Object.keys(updateData).forEach(key => {
+//       if (key !== 'isDefault' && key !== '_id') {
+//         if (key === 'studentInformation' && updateData[key]) {
+//           customer.addresses[addressIndex].studentInformation = {
+//             ...customer.addresses[addressIndex].studentInformation,
+//             ...updateData.studentInformation
+//           };
+//         } else if (key === 'location' && updateData[key]) {
+//           customer.addresses[addressIndex].location = {
+//             type: 'Point',
+//             coordinates: [updateData.location.lng, updateData.location.lat]
+//           };
+//         } else if (key === 'hubId') {
+//           customer.addresses[addressIndex].hubId = (updateData.hubId && updateData.hubId.trim() !== "") ? updateData.hubId : null;
+//         } else if (key !== 'hubId') {
+//           customer.addresses[addressIndex][key] = updateData[key];
+//         }
+//       }
+//     });
+
+//     await customer.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Address updated successfully",
+//       address: customer.addresses[addressIndex]
+//     });
+
+//   } catch (error) {
+//     console.error("Update address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+// async getAddresses(req, res) {
+//   try {
+//     const { customerId } = req.params;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       addresses: customer.addresses,
+//       primaryAddress: customer.primaryAddress
+//     });
+
+//   } catch (error) {
+//     console.error("Get addresses error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+// // Update address
+// async updateAddress(req, res) {
+//   try {
+//     const { customerId, addressId } = req.params;
+//     const updateData = req.body;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     const addressIndex = customer.addresses.findIndex(
+//       addr => addr._id.toString() === addressId
+//     );
+
+//     if (addressIndex === -1) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Address not found"
+//       });
+//     }
+
+//     // Validate type-specific fields if address type is being updated
+//     if (updateData.addressType) {
+//       const addressType = updateData.addressType;
+//       switch (addressType) {
+//         case "Home":
+//           if (!updateData.homeName) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "Home name is required for Home address"
+//             });
+//           }
+//           break;
+//         case "PG":
+//           if (!updateData.apartmentName || !updateData.towerBlock || !updateData.flat) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "Apartment name, Tower/Block and Flat are required for PG address"
+//             });
+//           }
+//           break;
+//         case "School":
+//           if (!updateData.schoolName || !updateData.studentInformation?.studentName || 
+//               !updateData.studentInformation?.studentClass || !updateData.studentInformation?.studentSection) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "School name, student name, class, and section are required for School address"
+//             });
+//           }
+//           break;
+//         case "Work":
+//           if (!updateData.companyName || !updateData.floorNo) {
+//             return res.status(400).json({
+//               success: false,
+//               message: "Company name and floor number are required for Work address"
+//             });
+//           }
+//           break;
+//       }
+//     }
+
+//     // Handle isDefault update
+//     if (updateData.isDefault) {
+//       customer.addresses.forEach(addr => {
+//         addr.isDefault = false;
+//       });
+//     }
+
+//     // Handle hubName and hubId updates - FIXED: use updateData.hubName instead of hubName
+//     if (updateData.hubName !== undefined) {
+//       customer.addresses[addressIndex].hubName = updateData.hubName;
+//     }
+
+//     // Handle hubId - ensure it's properly handled (null if empty)
+//     if (updateData.hubId !== undefined) {
+//       customer.addresses[addressIndex].hubId = (updateData.hubId && updateData.hubId.trim() !== "") ? updateData.hubId : null;
+//     }
+
+//     // Update address - use a more controlled approach to avoid overwriting
+//     const currentAddress = customer.addresses[addressIndex].toObject();
+    
+//     // Update only the fields that are provided in updateData
+//     Object.keys(updateData).forEach(key => {
+//       // Skip hubName and hubId as they are handled separately above
+//       if (key !== 'hubName' && key !== 'hubId') {
+//         if (key === 'studentInformation' && updateData[key]) {
+//           // Handle nested studentInformation object
+//           customer.addresses[addressIndex].studentInformation = {
+//             ...currentAddress.studentInformation,
+//             ...updateData.studentInformation
+//           };
+//         } else if (key === 'location' && updateData[key]) {
+//           // Handle location update
+//           customer.addresses[addressIndex].location = {
+//             type: 'Point',
+//             coordinates: [updateData.location.lng, updateData.location.lat]
+//           };
+//         } else {
+//           customer.addresses[addressIndex][key] = updateData[key];
+//         }
+//       }
+//     });
+
+//     await customer.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Address updated successfully",
+//       address: customer.addresses[addressIndex]
+//     });
+
+//   } catch (error) {
+//     console.error("Update address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+
+
+// // Delete address
+// async deleteAddress(req, res) {
+//   try {
+//     const { customerId, addressId } = req.params;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     const addressIndex = customer.addresses.findIndex(
+//       addr => addr._id.toString() === addressId
+//     );
+
+//     if (addressIndex === -1) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Address not found"
+//       });
+//     }
+
+//     // Check if this is the primary address
+//     const isPrimary = customer.primaryAddress?.toString() === addressId;
+
+//     // Remove address
+//     customer.addresses.splice(addressIndex, 1);
+
+//     // Clean up any invalid hubId values in remaining addresses
+//     customer.addresses.forEach(addr => {
+//       if (addr.hubId === "" || !addr.hubId) {
+//         addr.hubId = null;
+//       }
+//     });
+
+//     // If primary address was deleted, set a new one
+//     if (isPrimary && customer.addresses.length > 0) {
+//       customer.primaryAddress = customer.addresses[0]._id;
+//       customer.addresses[0].isDefault = true;
+//     } else if (customer.addresses.length === 0) {
+//       customer.primaryAddress = null;
+//     }
+
+//     await customer.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Address deleted successfully"
+//     });
+
+//   } catch (error) {
+//     console.error("Delete address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+// // Set primary address
+// async setPrimaryAddress(req, res) {
+//   try {
+//     const { customerId, addressId } = req.params;
+
+//     const customer = await CustomerModel.findById(customerId);
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found"
+//       });
+//     }
+
+//     const address = customer.addresses.find(
+//       addr => addr._id.toString() === addressId
+//     );
+
+//     if (!address) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Address not found"
+//       });
+//     }
+
+//     // Update all addresses to not default
+//     customer.addresses.forEach(addr => {
+//       addr.isDefault = false;
+//     });
+
+//     // Set the selected address as default and primary
+//     address.isDefault = true;
+//     customer.primaryAddress = address._id;
+
+//     await customer.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Primary address set successfully",
+//       primaryAddress: address
+//     });
+
+//   } catch (error) {
+//     console.error("Set primary address error:", error);
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal server error",
+//       error: error.message
+//     });
+//   }
+// }
+
+// // Get address by ID
+async getAddressById(req, res) {
+  try {
+    const { customerId, addressId } = req.params;
+
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    const address = customer.addresses.find(
+      addr => addr._id.toString() === addressId
+    );
+
+    if (!address) {
+      return res.status(404).json({
+        success: false,
+        message: "Address not found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      address
+    });
+
+  } catch (error) {
+    console.error("Get address by ID error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+}
+
+// // Get addresses by type
+async getAddressesByType(req, res) {
+  try {
+    const { customerId, addressType } = req.params;
+
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    const filteredAddresses = customer.addresses.filter(
+      addr => addr.addressType === addressType
+    );
+
+    return res.status(200).json({
+      success: true,
+      addresses: filteredAddresses,
+      count: filteredAddresses.length
+    });
+
+  } catch (error) {
+    console.error("Get addresses by type error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+}
+
+// // Get default address
+async getDefaultAddress(req, res) {
+  try {
+    const { customerId } = req.params;
+
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    const defaultAddress = customer.addresses.find(addr => addr.isDefault);
+
+    if (!defaultAddress) {
+      return res.status(404).json({
+        success: false,
+        message: "No default address found"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      address: defaultAddress
+    });
+
+  } catch (error) {
+    console.error("Get default address error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+}
+
+// // Remove default address
+async removeDefaultAddress(req, res) {
+  try {
+    const { customerId, addressId } = req.params;
+
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    const address = customer.addresses.find(
+      addr => addr._id.toString() === addressId
+    );
+
+    if (!address) {
+      return res.status(404).json({
+        success: false,
+        message: "Address not found"
+      });
+    }
+
+    // Remove default status from this address
+    address.isDefault = false;
+
+    // If this was the primary address, set a new primary if available
+    if (customer.primaryAddress?.toString() === addressId) {
+      const otherAddress = customer.addresses.find(addr => 
+        addr._id.toString() !== addressId
+      );
+      
+      if (otherAddress) {
+        customer.primaryAddress = otherAddress._id;
+        otherAddress.isDefault = true;
+      } else {
+        customer.primaryAddress = null;
+      }
+    }
+
+    await customer.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Default address removed successfully",
+      primaryAddress: customer.primaryAddress
+    });
+
+  } catch (error) {
+    console.error("Remove default address error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+}
+
+
+
+
+
+
+
+
+
+
+// Add address - SIMPLIFIED
 async addAddress(req, res) {
   try {
     const {
@@ -1567,14 +2271,15 @@ async addAddress(req, res) {
       floorNo,
       location,
       fullAddress,
-      isDefault = false
+      hubName,
+      hubId
     } = req.body;
 
     // Validate required fields
-    if (!customerId || !addressType || !houseName || !fullAddress || !location) {
+    if (!customerId || !addressType  || !fullAddress || !location) {
       return res.status(400).json({
         success: false,
-        message: "Customer ID, address type, house name, full address, and location are required"
+        message: "Customer ID, address type,  full address, and location are required"
       });
     }
 
@@ -1606,19 +2311,20 @@ async addAddress(req, res) {
       },
       landmark: landmark || "",
       floor: floor || "",
-      isDefault
+      hubName: hubName || "",
+      hubId: (hubId && hubId.trim() !== "") ? hubId : null
     };
 
-    // Add type-specific validation and fields
+    // Add type-specific fields
     switch (addressType) {
       case "Home":
-        if (!homeName) {
+        if (!houseName) {
           return res.status(400).json({
             success: false,
             message: "Home name is required for Home address"
           });
         }
-        addressData.homeName = homeName;
+        addressData.houseName = houseName;
         break;
 
       case "PG":
@@ -1666,25 +2372,18 @@ async addAddress(req, res) {
         });
     }
 
-    // If setting as default, unset other defaults
-    if (isDefault) {
-      customer.addresses.forEach(addr => {
-        addr.isDefault = false;
-      });
-    }
-
     // Add new address
     customer.addresses.push(addressData);
 
+    // Get the newly added address
+    const newAddress = customer.addresses[customer.addresses.length - 1];
+
     // If this is the first address, set it as primary
     if (customer.addresses.length === 1) {
-      customer.primaryAddress = customer.addresses[0]._id;
-      customer.addresses[0].isDefault = true;
+      customer.primaryAddress = newAddress._id;
     }
 
     await customer.save();
-
-    const newAddress = customer.addresses[customer.addresses.length - 1];
 
     return res.status(201).json({
       success: true,
@@ -1702,7 +2401,86 @@ async addAddress(req, res) {
   }
 }
 
-// Get all addresses for a customer
+// Set primary address - SIMPLIFIED
+async setPrimaryAddress(req, res) {
+  try {
+    const { customerId, addressId } = req.params;
+
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    const address = customer.addresses.find(
+      addr => addr._id.toString() === addressId
+    );
+
+    if (!address) {
+      return res.status(404).json({
+        success: false,
+        message: "Address not found"
+      });
+    }
+
+    // Simply set the primary address
+    customer.primaryAddress = address._id;
+
+    await customer.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Primary address set successfully",
+      primaryAddress: address
+    });
+
+  } catch (error) {
+    console.error("Set primary address error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+}
+
+// Remove primary address - SIMPLIFIED (just set to null)
+async removePrimaryAddress(req, res) {
+  try {
+    const { customerId } = req.params;
+
+    const customer = await CustomerModel.findById(customerId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    // Simply remove the primary address (set to null)
+    customer.primaryAddress = null;
+
+    await customer.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Primary address removed successfully",
+      primaryAddress: null
+    });
+
+  } catch (error) {
+    console.error("Remove primary address error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message
+    });
+  }
+}
+
+// Get addresses - SIMPLIFIED
 async getAddresses(req, res) {
   try {
     const { customerId } = req.params;
@@ -1715,9 +2493,18 @@ async getAddresses(req, res) {
       });
     }
 
+    // Sort addresses by createdAt descending (newest first)
+    const sortedAddresses = customer.addresses.sort((a, b) => {
+      if (a.createdAt && b.createdAt) {
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      // Fallback to _id timestamp if createdAt doesn't exist
+      return b._id.getTimestamp() - a._id.getTimestamp();
+    });
+
     return res.status(200).json({
       success: true,
-      addresses: customer.addresses,
+      addresses: sortedAddresses,
       primaryAddress: customer.primaryAddress
     });
 
@@ -1731,7 +2518,7 @@ async getAddresses(req, res) {
   }
 }
 
-// Update address
+// Update address - SIMPLIFIED (no isDefault handling)
 async updateAddress(req, res) {
   try {
     const { customerId, addressId } = req.params;
@@ -1796,18 +2583,26 @@ async updateAddress(req, res) {
       }
     }
 
-    // Handle isDefault update
-    if (updateData.isDefault) {
-      customer.addresses.forEach(addr => {
-        addr.isDefault = false;
-      });
-    }
-
-    // Update address
-    customer.addresses[addressIndex] = {
-      ...customer.addresses[addressIndex].toObject(),
-      ...updateData
-    };
+    // Update address fields
+    Object.keys(updateData).forEach(key => {
+      if (key !== '_id') {
+        if (key === 'studentInformation' && updateData[key]) {
+          customer.addresses[addressIndex].studentInformation = {
+            ...customer.addresses[addressIndex].studentInformation,
+            ...updateData.studentInformation
+          };
+        } else if (key === 'location' && updateData[key]) {
+          customer.addresses[addressIndex].location = {
+            type: 'Point',
+            coordinates: [updateData.location.lng, updateData.location.lat]
+          };
+        } else if (key === 'hubId') {
+          customer.addresses[addressIndex].hubId = (updateData.hubId && updateData.hubId.trim() !== "") ? updateData.hubId : null;
+        } else {
+          customer.addresses[addressIndex][key] = updateData[key];
+        }
+      }
+    });
 
     await customer.save();
 
@@ -1827,7 +2622,7 @@ async updateAddress(req, res) {
   }
 }
 
-// Delete address
+// Delete address - SIMPLIFIED
 async deleteAddress(req, res) {
   try {
     const { customerId, addressId } = req.params;
@@ -1857,11 +2652,8 @@ async deleteAddress(req, res) {
     // Remove address
     customer.addresses.splice(addressIndex, 1);
 
-    // If primary address was deleted, set a new one
-    if (isPrimary && customer.addresses.length > 0) {
-      customer.primaryAddress = customer.addresses[0]._id;
-      customer.addresses[0].isDefault = true;
-    } else if (customer.addresses.length === 0) {
+    // If primary address was deleted, set primary to null
+    if (isPrimary) {
       customer.primaryAddress = null;
     }
 
@@ -1882,131 +2674,8 @@ async deleteAddress(req, res) {
   }
 }
 
-// Set primary address
-async setPrimaryAddress(req, res) {
-  try {
-    const { customerId, addressId } = req.params;
-
-    const customer = await CustomerModel.findById(customerId);
-    if (!customer) {
-      return res.status(404).json({
-        success: false,
-        message: "Customer not found"
-      });
-    }
-
-    const address = customer.addresses.find(
-      addr => addr._id.toString() === addressId
-    );
-
-    if (!address) {
-      return res.status(404).json({
-        success: false,
-        message: "Address not found"
-      });
-    }
-
-    // Update all addresses to not default
-    customer.addresses.forEach(addr => {
-      addr.isDefault = false;
-    });
-
-    // Set the selected address as default and primary
-    address.isDefault = true;
-    customer.primaryAddress = address._id;
-
-    await customer.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Primary address set successfully",
-      primaryAddress: address
-    });
-
-  } catch (error) {
-    console.error("Set primary address error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error.message
-    });
-  }
-}
-
-// Get address by ID
-async getAddressById(req, res) {
-  try {
-    const { customerId, addressId } = req.params;
-
-    const customer = await CustomerModel.findById(customerId);
-    if (!customer) {
-      return res.status(404).json({
-        success: false,
-        message: "Customer not found"
-      });
-    }
-
-    const address = customer.addresses.find(
-      addr => addr._id.toString() === addressId
-    );
-
-    if (!address) {
-      return res.status(404).json({
-        success: false,
-        message: "Address not found"
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      address
-    });
-
-  } catch (error) {
-    console.error("Get address by ID error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error.message
-    });
-  }
-}
-
-// Get addresses by type
-async getAddressesByType(req, res) {
-  try {
-    const { customerId, addressType } = req.params;
-
-    const customer = await CustomerModel.findById(customerId);
-    if (!customer) {
-      return res.status(404).json({
-        success: false,
-        message: "Customer not found"
-      });
-    }
-
-    const filteredAddresses = customer.addresses.filter(
-      addr => addr.addressType === addressType
-    );
-
-    return res.status(200).json({
-      success: true,
-      addresses: filteredAddresses,
-      count: filteredAddresses.length
-    });
-
-  } catch (error) {
-    console.error("Get addresses by type error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-      error: error.message
-    });
-  }
-}
-
-// Get default address
-async getDefaultAddress(req, res) {
+// Get primary address
+async getPrimaryAddress(req, res) {
   try {
     const { customerId } = req.params;
 
@@ -2018,22 +2687,31 @@ async getDefaultAddress(req, res) {
       });
     }
 
-    const defaultAddress = customer.addresses.find(addr => addr.isDefault);
-
-    if (!defaultAddress) {
+    if (!customer.primaryAddress) {
       return res.status(404).json({
         success: false,
-        message: "No default address found"
+        message: "No primary address set"
+      });
+    }
+
+    const primaryAddress = customer.addresses.find(
+      addr => addr._id.toString() === customer.primaryAddress.toString()
+    );
+
+    if (!primaryAddress) {
+      return res.status(404).json({
+        success: false,
+        message: "Primary address not found in addresses"
       });
     }
 
     return res.status(200).json({
       success: true,
-      address: defaultAddress
+      address: primaryAddress
     });
 
   } catch (error) {
-    console.error("Get default address error:", error);
+    console.error("Get primary address error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
@@ -2041,69 +2719,6 @@ async getDefaultAddress(req, res) {
     });
   }
 }
-
-// async getHubMenu(req, res) {
-//     try {
-//       const { hubId, menuDate, session } = req.query;
-
-//       if (!hubId || !menuDate || !session) {
-//         return res
-//           .status(400)
-//           .json({ error: "Missing required parameters: hubId, date, or session." });
-//       }
-
-//       // 1. Find all menu items that match the user's selection
-//       const menuItems = await HubMenuModel.find({
-//         hubId: hubId,
-//         menuDate: new Date(menuDate), // Ensure date is a Date object
-//         session: session,
-//         isActive: true, // Only show items the admin has enabled
-//         remainingQuantity: { $gt: 0 }, // Only show items that are in stock
-//       })
-//       // 2. Sort by the priority set in the admin panel
-//       .sort({ hubPriority: 1 }) 
-      
-//       // 3. Populate the product details (name, image, etc.) from your 'addproduct' model
-//       .populate({
-//         path: "productId",
-//         model: AddproductModel,
-//         // Select only the fields the frontend needs
-//         select: "productName productImages productImages2 foodcategory unit fooddescription foodType", 
-//       });
-
-//       // 4. Return the formatted menu
-//       // We re-format the data here to perfectly match the *old 'fooditemdata' structure*
-//       // that your Home.jsx file already knows how to read. This is a non-breaking change.
-//       const formattedMenu = menuItems.map(item => ({
-//           _id: item.productId._id, // Product ID
-//           foodname: item.productId.productName,
-//           unit: item.productId.unit,
-//           fooddescription: item.productId.fooddescription,
-//           foodcategory: item.productId.foodcategory,
-//           foodType: item.productId.foodType,
-//           Foodgallery: [
-//              // Use productImages2 if available, otherwise fall back to productImages
-//              { image2: item.productId.productImages2?.[0] || item.productId.productImages?.[0] }
-//           ],
-          
-//           // This is the critical part:
-//           // We map the HubMenu data to the 'locationPrice' array
-//           // that your Home.jsx 'map' function already uses.
-//           locationPrice: [{ 
-//              foodprice: item.hubPrice,
-//              basePrice: item.basePrice,
-//              Remainingstock: item.remainingQuantity,
-//              Priority: item.hubPriority,
-//              // Add any other fields your frontend needs from the 'item'
-//           }]
-//       }));
-
-//       return res.status(200).json({ menu: formattedMenu });
-//     } catch (error) {
-//       console.error("Error fetching hub menu:", error);
-//       return res.status(500).json({ error: "Internal server error" });
-//     }
-//   }
 async getHubMenu(req, res) {
     try {
       const { hubId } = req.query;
@@ -2136,7 +2751,7 @@ async getHubMenu(req, res) {
       .populate({
         path: "productId",
         model: AddproductModel,
-        select: "foodname Foodgallery foodcategory unit fooddescription foodmealtype", 
+        select: "foodname Foodgallery foodcategory unit fooddescription foodmealtype menuCategory aggregatedPrice ", 
       });
 
       // 3. Re-format the data to match your Home.jsx structure, grouped by slot for easy frontend filtering
@@ -2151,6 +2766,8 @@ async getHubMenu(req, res) {
           Foodgallery: [
              { image2: item.productId.Foodgallery?.[0]?.image2 || "" }
           ],
+          menuCategory: item.productId.menuCategory,
+          aggregatedPrice: item.productId.aggregatedPrice,
           
           // Critical fields for slot identification and pricing
           deliveryDate: item.menuDate.toISOString(), // Store the date here

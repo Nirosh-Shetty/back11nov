@@ -27,7 +27,9 @@ export default function ReferScreen() {
 
   const [friendReward, setFriendReward] = useState(0);
   const [referrerReward, setReferrerReward] = useState(0);
-  const [userReferralCode, setUserReferralCode] = useState(user?.referralCode || null);
+  const [userReferralCode, setUserReferralCode] = useState(
+    user?.referralCode || null
+  );
   useEffect(() => {
     if (!user || !user._id) {
       setError("Please log in to see your referral details.");
@@ -38,17 +40,17 @@ export default function ReferScreen() {
     const fetchAllData = async () => {
       setLoading(true);
       setError(null);
-      
+
       // Get the code from storage (it's either the code or null)
       const codeFromStorage = user?.referralCode;
 
       try {
         // ++ YOUR OPTIMIZED LOGIC ++
-        
+
         // 1. Create the base list of API calls
         const apiCalls = [
           axios.get(`/user/my-referrals/${user._id}`), // Call 1
-          axios.get("/user/get-referral-settings")     // Call 2
+          axios.get("/user/get-referral-settings"), // Call 2
         ];
 
         // 2. If the user has no code, add the 3rd API call
@@ -77,7 +79,10 @@ export default function ReferScreen() {
         if (settingsRes.data.success) {
           const defaultSettings = settingsRes.data.data;
           setFriendReward(defaultSettings.friendRewardAmount || 25);
-          const rReward = user.customReferralReward || defaultSettings.referrerRewardAmount || 25;
+          const rReward =
+            user.customReferralReward ||
+            defaultSettings.referrerRewardAmount ||
+            25;
           setReferrerReward(rReward);
         } else {
           setFriendReward(25);
@@ -89,14 +94,13 @@ export default function ReferScreen() {
           const codeRes = responses[2];
           if (codeRes.data.success) {
             const newCode = codeRes.data.referralCode;
-            setUserReferralCode(newCode); 
+            setUserReferralCode(newCode);
 
             const updatedUser = { ...user, referralCode: newCode };
             localStorage.setItem("user", JSON.stringify(updatedUser));
             console.log("Fetched and saved new code to storage:", newCode);
           }
         }
-
       } catch (err) {
         console.error("Error fetching referral data:", err);
         setError(err.response?.data?.message || "An error occurred.");
@@ -108,7 +112,7 @@ export default function ReferScreen() {
     };
 
     fetchAllData();
-  }, [user?._id, user?.customReferralReward]);// Dependency array ensures this runs if the user changes
+  }, [user?._id, user?.customReferralReward]); // Dependency array ensures this runs if the user changes
   // const copyToClipboard = () => {
   //   const codeToCopy = 'NAMABX';
 
@@ -156,15 +160,15 @@ export default function ReferScreen() {
       return;
     }
 
-   const cleanDomain = window.location.host; 
+    const cleanDomain = window.location.host;
     const referralLink = `${cleanDomain}/${userReferralCode}`;
 
     const message = encodeURIComponent(
       `Hey, I just came across DailyDish and gave it a try - ordered a meal there. 🍽️\n\n` +
         `This app actually delivers proper home-style meals at very reasonable prices, and I could even choose my delivery slot.\n\n` +
         `Thought you'd like it. 😊\n\n` +
-        `Just sign up using my link. Worth trying:\n\n` +
-        ` ${referralLink}`
+        `Just sign up using my link. Worth trying:` +
+        ` ${referralLink} 📱`
     );
 
     const whatsappUrl = `https://api.whatsapp.com/send?text=${message}`;
@@ -194,7 +198,7 @@ export default function ReferScreen() {
             */}
             <button onClick={() => navigate(-1)} className="refer-back-btn">
               <img
-                src="/Assets/checkoutback.svg"
+                src="/assets/checkoutback.svg"
                 alt="Back"
                 className="icon-img-l"
                 style={{
@@ -223,9 +227,12 @@ export default function ReferScreen() {
               <p className="refer-title">Invite someone special</p>
               <p className="refer-body">
                 Share your link and they'll get
-                <span className="refer-highlight"> {loading ? "..." :`₹${friendReward}`} </span>
+                <span className="refer-highlight">
+                  {" "}
+                  {loading ? "..." : `₹${friendReward}`}{" "}
+                </span>
                 in their wallet right away.
-              </p> 
+              </p>
             </div>
           </div>
 
@@ -237,7 +244,10 @@ export default function ReferScreen() {
               <p className="refer-title">Get Your Reward</p>
               <p className="refer-body">
                 When they place their first order, you get
-                <span className="refer-highlight"> {loading ? "..." :`₹${referrerReward}`} </span>
+                <span className="refer-highlight">
+                  {" "}
+                  {loading ? "..." : `₹${referrerReward}`}{" "}
+                </span>
                 in your wallet. Easy!
               </p>
             </div>
@@ -375,7 +385,7 @@ export default function ReferScreen() {
               subtitle="Friends who signed up but haven’t ordered yet"
               icon={
                 <img
-                  src="/Assets/pending.svg"
+                  src="/assets/pending.svg"
                   alt="Pending"
                   className="icon-img-m"
                 />
@@ -394,7 +404,7 @@ export default function ReferScreen() {
                     <div className="refer-left-block">
                       <div className="refer-name-row">
                         <img
-                          src="/Assets/airosend.svg"
+                          src="/assets/airosend.svg"
                           alt="Sent"
                           className="icon-img-s"
                         />
@@ -425,7 +435,7 @@ export default function ReferScreen() {
               subtitle="Friends who completed their first order"
               icon={
                 <img
-                  src="/Assets/success.svg"
+                  src="/assets/success.svg"
                   alt="Success"
                   className="icon-img-m"
                 />
@@ -444,7 +454,7 @@ export default function ReferScreen() {
                     <div className="refer-left-block">
                       <div className="refer-name-row">
                         <img
-                          src="/Assets/gifticon.svg"
+                          src="/assets/gifticon.svg"
                           alt="Gift"
                           className="icon-img-s"
                         />
@@ -487,7 +497,7 @@ export default function ReferScreen() {
         <button className="refer-whatsapp-btn" onClick={openWhatsApp}>
           <span className="refer-whatsapp-text">Invite on WhatsApp</span>
           <img
-            src="/Assets/whatsapp.svg"
+            src="/assets/whatsapp.svg"
             alt="WhatsApp"
             className="icon-img-l"
           />

@@ -10,6 +10,12 @@ const AddRestaurants = new Schema(
     foodcategory: {
       type: String,
     },
+     categoryName:{
+       type: String,
+    },
+      menuCategory:{
+       type: String,
+    },
     fooddescription: {
       type: String,
     },
@@ -60,6 +66,9 @@ const AddRestaurants = new Schema(
     },
 
     offerprice: {
+      type: Number,
+    },
+      aggregatedPrice: {
       type: Number,
     },
     totalprice: {

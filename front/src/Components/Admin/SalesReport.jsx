@@ -8,7 +8,7 @@ import {
   Spinner,
   Dropdown,
   Row, // Added Row
-  Col,   // Added Col
+  Col, // Added Col
 } from "react-bootstrap";
 import { BsSearch, BsArrowBarDown } from "react-icons/bs";
 import { AiOutlineExport } from "react-icons/ai";
@@ -32,7 +32,7 @@ const SalesReport = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectHub, setSelectHub] = useState({});
   const dropdownRef = useRef(null);
-  
+
   // --- CHANGE 1: Rename state from selectedSlot to selectedSession ---
   const [selectedSession, setSelectedSession] = useState("All");
 
@@ -86,8 +86,13 @@ const SalesReport = () => {
       const params = new URLSearchParams();
 
       // send precise ISO timestamps (start/end of day) to avoid timezone ambiguity
-      if (startDate) params.append("startDate", moment(startDate).startOf("day").toISOString());
-      if (endDate) params.append("endDate", moment(endDate).endOf("day").toISOString());
+      if (startDate)
+        params.append(
+          "startDate",
+          moment(startDate).startOf("day").toISOString()
+        );
+      if (endDate)
+        params.append("endDate", moment(endDate).endOf("day").toISOString());
       if (Object.keys(selectHub).length > 0)
         params.append("hubId", selectHub.hubId);
       if (locationData.length > 0) {
@@ -120,12 +125,9 @@ const SalesReport = () => {
 
   const getHubs = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:7013/api/Hub/hubs",
-        {
-          headers: { Authorization: `Bearer ${"token"}` },
-        }
-      );
+      const res = await axios.get("http://localhost:7013/api/Hub/hubs", {
+        headers: { Authorization: `Bearer ${"token"}` },
+      });
       setHubs(res.data);
     } catch (error) {
       alert(error?.response?.data?.message || "Failed to fetch hubs.", "error");
@@ -135,16 +137,16 @@ const SalesReport = () => {
   useEffect(() => {
     // getProducts();
     getHubs();
-    getSalesReport(); 
+    getSalesReport();
   }, []);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       getSalesReport();
-    }, 500); 
+    }, 500);
 
     return () => clearTimeout(debounceTimer);
-    
+
     // --- CHANGE 3: Update dependency array ---
   }, [
     startDate,
@@ -208,7 +210,7 @@ const SalesReport = () => {
     setSelectedLocations([]);
     setLocationData([]);
     // --- CHANGE 4: Reset the correct state ---
-    setSelectedSession("All"); 
+    setSelectedSession("All");
   };
 
   const handleExportExcel = () => {
@@ -298,9 +300,8 @@ const SalesReport = () => {
               </div>
             </div>
           </div>
-         
+
           <div className="row g-3 m-2 justify-content-end">
-            
             {/* --- CHANGE 5: Update state for Session filter --- */}
             <div className="col-md-3">
               <Form.Label>Session</Form.Label>
@@ -315,7 +316,7 @@ const SalesReport = () => {
                 <option value="Dinner">Dinner</option>
               </Form.Select>
             </div>
-            
+
             <div className="col-md-4">
               <Form.Label>Hub</Form.Label>
               <select
@@ -342,7 +343,7 @@ const SalesReport = () => {
                 ))}
               </select>
             </div>
-            
+
             <div className="col-md-3 d-flex align-items-end">
               <Dropdown
                 className="packer-slot-select shadow-sm w-100"

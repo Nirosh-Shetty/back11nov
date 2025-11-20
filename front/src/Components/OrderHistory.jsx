@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef } from "react";
 import axios from "axios";
 import moment from "moment";
 import { useSearchParams, useNavigate } from "react-router-dom";
@@ -10,19 +10,24 @@ import "../Styles/OrderHistory.css";
 function OrderHistory() {
   // --- State for fetched orders and navigation ---
   const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]); // Store all orders
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const userId = searchParams.get("userID");
-  const phoneNumber = "7204188504"; // Replace with your WhatsApp number
-  const message = "Hello! I need assistance."; // Default message
+  const phoneNumber = "7204188504";
+  const message = "Hello! I need assistance.";
 
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
     message
   )}`;
+
+  // --- Pagination state ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [ordersPerPage] = useState(4); // Number of orders per page
+
   // --- State for the currently tracked order ---
   const [currentTrackedOrder, setCurrentTrackedOrder] = useState(null);
 
-  // --- Data fetching function ---
   // --- Data fetching function ---
   const getorders = async (id) => {
     try {
@@ -65,7 +70,8 @@ function OrderHistory() {
           }
         });
         setOrderRatings(initialRatings);
-        setOrders(formattedOrders);
+        setAllOrders(formattedOrders); // Store all orders
+        setOrders(formattedOrders); // Initialize with all orders
       }
     } catch (error) {
       console.log("Error fetching orders:", error);
@@ -82,6 +88,32 @@ function OrderHistory() {
     }
   }, [userId]);
 
+  // --- Pagination logic ---
+  const indexOfLastOrder = currentPage * ordersPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+  const currentOrders = orders.slice(indexOfFirstOrder, indexOfLastOrder);
+  const totalPages = Math.ceil(orders.length / ordersPerPage);
+
+  // --- Pagination handlers ---
+  const nextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const prevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo(0, 0);
+  };
+
   // --- States for Modals and Ratings ---
   const [modalVisible, setModalVisible] = useState(false);
   const [modalVisible1, setModalVisible1] = useState(false);
@@ -95,6 +127,7 @@ function OrderHistory() {
   const [foodReview, setFoodReview] = useState("");
   const [deliveryReview, setDeliveryReview] = useState("");
   const [currentOrderForRating, setCurrentOrderForRating] = useState(null);
+
   const getOrderRating = (orderId, type) => orderRatings[orderId]?.[type] || 0;
 
   const setOrderRating = (orderId, type, rating) => {
@@ -291,12 +324,11 @@ function OrderHistory() {
                   spacing={6}
                   ratingType="food"
                 />
-                {/* <button className="rating-overlay" onClick={() => { setCurrentOrderId(order.id); setModalFoodRating(foodRating); setModalVisible(true); }} /> */}
                 <button
                   className="rating-overlay"
                   onClick={() => {
                     const orderToRate = orders.find((o) => o.id === order.id);
-                    setCurrentOrderForRating(orderToRate); // Set the full order object
+                    setCurrentOrderForRating(orderToRate);
                     setCurrentOrderId(order.id);
                     setModalFoodRating(orderToRate.ratingOnOrder);
                     setFoodReview(orderToRate.commentOnOrder);
@@ -320,12 +352,11 @@ function OrderHistory() {
                   spacing={6}
                   ratingType="delivery"
                 />
-                {/* <button className="rating-overlay" onClick={() => { setCurrentOrderId(order.id); setModalDeliveryRating(deliveryRating); setModalVisible1(true); }} /> */}
                 <button
                   className="rating-overlay"
                   onClick={() => {
                     const orderToRate = orders.find((o) => o.id === order.id);
-                    setCurrentOrderForRating(orderToRate); // Set the full order object
+                    setCurrentOrderForRating(orderToRate);
                     setCurrentOrderId(order.id);
                     setModalDeliveryRating(orderToRate.ratingOnDelivery);
                     setDeliveryReview(orderToRate.commentOnDelivery);
@@ -340,13 +371,104 @@ function OrderHistory() {
     );
   };
 
+  // --- Pagination Component ---
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return (
+      <div className="pagination-container">
+        <button
+          className={`pagination-btn ${currentPage === 1 ? "disabled" : ""}`}
+          onClick={prevPage}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+
+        <div className="page-numbers">
+          {startPage > 1 && (
+            <>
+              <button
+                className={`page-number ${1 === currentPage ? "active" : ""}`}
+                onClick={() => goToPage(1)}
+              >
+                1
+              </button>
+              {startPage > 2 && <span className="page-ellipsis">...</span>}
+            </>
+          )}
+
+          {pageNumbers.map((number) => (
+            <button
+              key={number}
+              className={`page-number ${
+                number === currentPage ? "active" : ""
+              }`}
+              onClick={() => goToPage(number)}
+            >
+              {number}
+            </button>
+          ))}
+
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && (
+                <span className="page-ellipsis">...</span>
+              )}
+              <button
+                className={`page-number ${
+                  totalPages === currentPage ? "active" : ""
+                }`}
+                onClick={() => goToPage(totalPages)}
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+        </div>
+
+        <button
+          className={`pagination-btn ${
+            currentPage === totalPages ? "disabled" : ""
+          }`}
+          onClick={nextPage}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
   const deleteOrder = (orderId) => {
     if (
       window.confirm(
         "Are you sure you want to delete this order? This action cannot be undone."
       )
     ) {
-      setOrders(orders.filter((order) => order.id !== orderId));
+      const updatedOrders = orders.filter((order) => order.id !== orderId);
+      setOrders(updatedOrders);
+      setAllOrders(updatedOrders);
+
+      // Adjust current page if needed
+      if (currentOrders.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+
       const { [orderId]: _, ...newRatings } = orderRatings;
       setOrderRatings(newRatings);
       setModalVisible3(false);
@@ -360,32 +482,18 @@ function OrderHistory() {
   const handleRatingSubmit = async (ratingType) => {
     if (!currentOrderId) return;
 
-    // 1. Determine which rating and review to use based on the type
     const isFoodRating = ratingType === "food";
     const rating = isFoodRating ? modalFoodRating : modalDeliveryRating;
     const comment = isFoodRating ? foodReview : deliveryReview;
-    // const endpoint = isFoodRating ? 'submitFoodRating' : 'submitDeliveryRating';
 
     try {
-      console.log(`Submitting ${ratingType} Rating:`, {
+      await axios.put(`http://localhost:7013/api/admin/submitOrderRating`, {
         orderId: currentOrderId,
+        ratingType,
         rating,
         comment,
       });
-      await axios.put(
-        `http://localhost:7013/api/admin/submitOrderRating`,
-        {
-          // userId: user?._id || userId,
-          orderId: currentOrderId,
-          ratingType,
-          rating,
-          comment,
-        }
-      );
 
-      // alert('Thank you for your feedback!');
-
-      // 3. Update the correct state based on the type
       setOrderRating(currentOrderId, ratingType, rating);
       setOrders(
         orders.map((o) => {
@@ -398,35 +506,102 @@ function OrderHistory() {
         })
       );
 
-      // 4. Close the correct modal
       if (isFoodRating) {
         setModalVisible(false);
       } else {
         setModalVisible1(false);
       }
     } catch (error) {
-      // console.error('Dummy API error:', error);
       alert("Failed to submit rating. Please try again.");
     }
   };
+
+  // Replace the useEffect with useLayoutEffect
+  const containerRef = useRef(null);
+
+  // Aggressive scroll to top
+  useLayoutEffect(() => {
+    const scrollToTop = () => {
+      // Multiple methods to ensure scroll to top
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+
+      if (containerRef.current) {
+        containerRef.current.scrollTop = 0;
+      }
+    };
+
+    // Immediate scroll
+    scrollToTop();
+
+    // Scroll after a short delay to catch any late renders
+    const timeout1 = setTimeout(scrollToTop, 0);
+    const timeout2 = setTimeout(scrollToTop, 50);
+    const timeout3 = setTimeout(scrollToTop, 100);
+
+    return () => {
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
+      clearTimeout(timeout3);
+    };
+  }, []);
+
+  // Also add for pagination
+  useLayoutEffect(() => {
+    const scrollToTop = () => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    };
+
+    scrollToTop();
+  }, [currentPage]);
+
   return (
     <div className="mobile-banner-updated containerOrder">
       <div className="headerBottom" onClick={handleGoBack}>
         <ArrowLeft size={35} style={{ color: "#FAFAFA" }} />
         <div className="tagline">My Orders</div>
       </div>
+
+      {/* Orders Count */}
+      <div className="orders-count" style={{ color: "#000" }}>
+        Showing {currentOrders.length} of {orders.length} orders
+        {currentPage > 1 && ` (Page ${currentPage} of ${totalPages})`}
+      </div>
+
       <div className="scrollView">
-        {orders.length > 0 ? (
-          orders.map((order) => <OrderCard key={order.id} order={order} />)
+        {currentOrders.length > 0 ? (
+          currentOrders.map((order) => (
+            <OrderCard key={order.id} order={order} />
+          ))
         ) : (
           <div
-            style={{ textAlign: "center", color: "#FAFAFA", marginTop: "20px" }}
+            style={{ textAlign: "center", color: "#000", marginTop: "20px" }}
           >
             <p>No orders found.</p>
           </div>
         )}
       </div>
-      {/* Track Order Modal */}
+
+      {/* Pagination */}
+      <Pagination />
+
+      {/* Rest of your modals remain the same */}
+      <Modal
+        className="tarck-order"
+        show={modalVisible4}
+        onHide={() => {
+          setModalVisible4(false);
+          setCurrentTrackedOrder(null);
+        }}
+        size="lg"
+        centered
+      >
+        {/* Track Order Modal Content - unchanged */}
+      </Modal>
+
       <Modal
         className="tarck-order"
         show={modalVisible4}
@@ -967,7 +1142,7 @@ function OrderHistory() {
             Delete Permanently
           </Button>
         </Modal.Footer>
-      </Modal>{" "}
+      </Modal>
     </div>
   );
 }

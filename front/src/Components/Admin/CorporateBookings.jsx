@@ -75,7 +75,7 @@ const CorporateBookings = () => {
   const [statusdata, setstatusdata] = useState("");
   const [reason, setreason] = useState("");
   const [excelLoading, setExeclLoading] = useState(false);
-  
+
   // --- REMOVED Old/Unused States ---
   // const [AllTimesSlote, setAllTimesSlote] = useState([]); (Removed)
   // const [locations, setLocations] = useState([]); (Removed)
@@ -83,7 +83,7 @@ const CorporateBookings = () => {
   // const [allLocation, setAllLocation] = useState([]); (Removed)
   // const [isDropdownOpen, setIsDropdownOpen] = useState(false); (Removed)
   // const dropdownRef = useRef(null); (Removed)
-  
+
   // --- API Functions ---
 
   // MODIFIED: Fetches corporate orders based on new filters
@@ -216,10 +216,12 @@ const CorporateBookings = () => {
   // WARNING: This function is kept, but will fail
   // It depends on filters (slot, locations) that have been removed.
   const updateSelectedMarks = async () => {
-    if (!filters.slot) { // This will now always fail
+    if (!filters.slot) {
+      // This will now always fail
       return Swal.fire("Info", "Please select slot", "info");
     }
-    if (!filters.locations.length) { // This will now always fail
+    if (!filters.locations.length) {
+      // This will now always fail
       return Swal.fire("Info", "Please select location", "info");
     }
     if (!filters.status) {
@@ -256,7 +258,7 @@ const CorporateBookings = () => {
         limit: 10000, // Fetch all for export
         orderType: "corporate",
       };
-      
+
       const res = await axios.get(
         "http://localhost:7013/api/admin/getallordersfilter",
         { params }
@@ -266,33 +268,40 @@ const CorporateBookings = () => {
         const dataToExport = res.data.data.orders.map((item, index) => ({
           "Sl.No": index + 1,
           "Delivery Date": moment(item?.deliveryDate).format("DD-MM-YYYY"),
-          "Session": item?.session || "N/A",
+          Session: item?.session || "N/A",
           "Placed Date": moment(item?.createdAt).format("DD-MM-YYYY"),
           "Placed Time": moment(item?.createdAt).format("h:mm A"),
           "Order ID": item?.orderid,
           "Customer Name": item?.username,
           "Hub Name": item?.hubId?.hubName || "N/A",
-          "Slot": item?.slot,
-          "Category": item?.allProduct?.map(p => p.foodItemId?.foodcategory).join(", "),
-          "Product": item?.allProduct?.map(p => `${p.foodItemId?.foodname} - ${p.quantity} Qty`).join("\n"),
-          "Cutlery": item?.Cutlery > 0 ? "Yes" : "No",
-          "Unit": item?.allProduct?.map(p => p.foodItemId?.unit).join(", "),
-          "Phone": item?.Mobilenumber,
-          "Corporate": item?.companyName,
+          Slot: item?.slot,
+          Category: item?.allProduct
+            ?.map((p) => p.foodItemId?.foodcategory)
+            .join(", "),
+          Product: item?.allProduct
+            ?.map((p) => `${p.foodItemId?.foodname} - ${p.quantity} Qty`)
+            .join("\n"),
+          Cutlery: item?.Cutlery > 0 ? "Yes" : "No",
+          Unit: item?.allProduct?.map((p) => p.foodItemId?.unit).join(", "),
+          Phone: item?.Mobilenumber,
+          Corporate: item?.companyName,
           "Delivery location": item?.delivarylocation,
           // "Delivery Method": item.deliveryMethod || "N/A",
           "Payment Method": item?.paymentmethod,
           "Delivery Amount": item?.deliveryCharge,
-          "Tax": item?.tax?.toFixed(2),
+          Tax: item?.tax?.toFixed(2),
           "Wallet Discount": item?.discountWallet || 0,
           "Coupon Discount": item?.coupon || 0,
           "Total Amount": item?.allTotal,
         }));
-        
+
         const worksheet = XLSX.utils.json_to_sheet(dataToExport);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "CorporateOrders");
-        XLSX.writeFile(workbook, `Corporate_Bookings_${moment().format("DDMMYYYY")}.xlsx`);
+        XLSX.writeFile(
+          workbook,
+          `Corporate_Bookings_${moment().format("DDMMYYYY")}.xlsx`
+        );
       }
     } catch (error) {
       console.error("Export error:", error);
@@ -316,43 +325,53 @@ const CorporateBookings = () => {
     }
     return stars;
   };
-  
+
   // REMOVED: debouncedSearch useEffect
 
   return (
     <div>
       {/* === NEW: Date Filter Toggles === */}
       <Card className="mb-3">
-        <Card.Body className="d-flex justify-content-center"
-        
-        >
-          <ButtonGroup style={{
-          border: "2px solid #007bff",
-          borderRadius: "23px",
-          padding: "5px",
-        }}>
+        <Card.Body className="d-flex justify-content-center">
+          <ButtonGroup
+            style={{
+              border: "2px solid #007bff",
+              borderRadius: "23px",
+              padding: "5px",
+            }}
+          >
             <Button
-              variant={filters.dateFilterType === "today" ? "primary" : "outline-primary"}
+              variant={
+                filters.dateFilterType === "today"
+                  ? "primary"
+                  : "outline-primary"
+              }
               onClick={() => handleDateFilterChange("today")}
               style={{
-                borderTopLeftRadius:"18px",
-                borderBottomLeftRadius:"18px"
+                borderTopLeftRadius: "18px",
+                borderBottomLeftRadius: "18px",
               }}
             >
               Today's Orders
             </Button>
             <Button
-              variant={filters.dateFilterType === "future" ? "primary" : "outline-primary"}
+              variant={
+                filters.dateFilterType === "future"
+                  ? "primary"
+                  : "outline-primary"
+              }
               onClick={() => handleDateFilterChange("future")}
             >
               Future Orders (from Today)
             </Button>
             <Button
-              variant={filters.dateFilterType === "all" ? "primary" : "outline-primary"}
+              variant={
+                filters.dateFilterType === "all" ? "primary" : "outline-primary"
+              }
               onClick={() => handleDateFilterChange("all")}
               style={{
-                borderTopRightRadius:"18px",
-                borderBottomRightRadius:"18px"
+                borderTopRightRadius: "18px",
+                borderBottomRightRadius: "18px",
               }}
             >
               All Orders
@@ -360,7 +379,7 @@ const CorporateBookings = () => {
           </ButtonGroup>
         </Card.Body>
       </Card>
-      
+
       {/* === MODIFIED: Filters Row 1 === */}
       <Row className="d-flex gap-3 align-items-center mb-2 mx-1">
         {/* Hub Filter */}
@@ -414,7 +433,7 @@ const CorporateBookings = () => {
             <option value="Cancelled">Cancelled</option>
           </Form.Select>
         </Col>
-        
+
         {/* REMOVED: Location Filter Dropdown */}
         {/* REMOVED: Old Slot Filter */}
         {/* REMOVED: Bulk Update Button (relied on removed filters) */}
@@ -453,7 +472,9 @@ const CorporateBookings = () => {
       <div className="customerhead p-2">
         <div className="d-flex justify-content-between align-items-center">
           <h2 className="header-c">Corporate Booking List</h2>
-          <h3 className="header-c">Total Orders: {pagination?.totalCount || 0}</h3>
+          <h3 className="header-c">
+            Total Orders: {pagination?.totalCount || 0}
+          </h3>
           <Button
             variant="success"
             onClick={handleExportExcel}
@@ -505,13 +526,17 @@ const CorporateBookings = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={28} className="text-center"> {/* Updated colSpan */}
+                  <td colSpan={28} className="text-center">
+                    {" "}
+                    {/* Updated colSpan */}
                     <Spinner animation="border" variant="primary" />
                   </td>
                 </tr>
               ) : ApartmentOrder.length === 0 ? (
                 <tr>
-                  <td colSpan={28} className="text-center"> {/* Updated colSpan */}
+                  <td colSpan={28} className="text-center">
+                    {" "}
+                    {/* Updated colSpan */}
                     No orders found
                   </td>
                 </tr>
@@ -528,16 +553,16 @@ const CorporateBookings = () => {
                       <td style={{ paddingTop: "20px" }}>
                         {moment(items?.createdAt).format("h:mm A")}
                       </td>
-                      
                       {/* === NEW DATA CELLS === */}
                       <td style={{ paddingTop: "20px" }}>
-                        {items?.deliveryDate ? moment(items.deliveryDate).format("DD-MM-YYYY") : "N/A"}
+                        {items?.deliveryDate
+                          ? moment(items.deliveryDate).format("DD-MM-YYYY")
+                          : "N/A"}
                       </td>
                       <td style={{ paddingTop: "20px" }}>
                         {items?.session || "N/A"}
                       </td>
                       {/* === END NEW DATA CELLS === */}
-                      
                       <td style={{ paddingTop: "20px" }}>{items?.orderid}</td>
                       <td style={{ paddingTop: "20px" }}>
                         {items?.username}
@@ -559,13 +584,15 @@ const CorporateBookings = () => {
                         </Button>
                       </td>
                       <td style={{ paddingTop: "20px" }}>
-                        {items?.hubId?.hubName || "N/A"} {/* Using populated hub name */}
+                        {items?.hubId?.hubName || "N/A"}{" "}
+                        {/* Using populated hub name */}
                       </td>
                       <td style={{ paddingTop: "20px" }}>{items?.slot}</td>
                       <td style={{ paddingTop: "20px" }}>
                         {items?.allProduct?.map((item, idx) => (
                           <span key={idx}>
-                            {item?.foodItemId?.foodcategory}{idx !== items.allProduct.length - 1 ? ", " : ""}
+                            {item?.foodItemId?.foodcategory}
+                            {idx !== items.allProduct.length - 1 ? ", " : ""}
                           </span>
                         ))}
                       </td>
@@ -582,14 +609,18 @@ const CorporateBookings = () => {
                       <td style={{ paddingTop: "20px" }}>
                         {items?.allProduct?.map((item, idx) => (
                           <span key={idx}>
-                            {item?.foodItemId?.unit}{idx !== items.allProduct.length - 1 ? ", " : ""}
+                            {item?.foodItemId?.unit}
+                            {idx !== items.allProduct.length - 1 ? ", " : ""}
                           </span>
                         ))}
                       </td>
                       <td style={{ paddingTop: "20px" }}>
                         {items?.Mobilenumber}
                       </td>
-                      <td style={{ paddingTop: "20px" }}>{items?.companyName}</td> {/* Using companyName */}
+                      <td style={{ paddingTop: "20px" }}>
+                        {items?.companyName}
+                      </td>{" "}
+                      {/* Using companyName */}
                       <td style={{ paddingTop: "20px" }}>
                         {items?.delivarylocation},{items?.addressline}
                       </td>
@@ -683,7 +714,7 @@ const CorporateBookings = () => {
       </div>
 
       {/* --- ALL MODALS (Kept from original) --- */}
-      
+
       {/* Delete booking */}
       <Modal
         show={show4}
@@ -729,7 +760,9 @@ const CorporateBookings = () => {
         style={{ zIndex: 9999999 }}
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-vcenter">Order Details</Modal.Title>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Order Details
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="row">
@@ -887,7 +920,9 @@ const CorporateBookings = () => {
               }}
               defaultValue="" // Use defaultValue
             >
-              <option value="" disabled>Select Status</option>
+              <option value="" disabled>
+                Select Status
+              </option>
               <option value="Cooking">Cooking</option>
               <option value="Packing">Packing</option>
               <option value="On the way">On the way</option>

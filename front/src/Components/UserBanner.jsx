@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { Link } from "react-router-dom";
 
 const UserBanner = () => {
   const [banners, setBanners] = useState([]);
@@ -12,11 +13,10 @@ const UserBanner = () => {
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const res = await axios.get(
-          "http://localhost:7013/api/admin/banners"
-        );
+        const res = await axios.get("http://localhost:7013/api/admin/banners");
+        console.log(res.getbanner, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
         if (res.status === 200) {
-          const bannerData = res.data.banners || res.data.getbanner || [];
+          const bannerData = res.data.getbanner || res.data.getbanner || [];
           // console.log('Fetched banners:', bannerData); // Debug log
           bannerData.forEach((banner) => {
             // console.log('BannerText:', banner.BannerText); // Debug BannerText
@@ -157,6 +157,11 @@ const UserBanner = () => {
             0%, 100% { background-size: 100%; }
             50% { background-size: 110%; }
           }
+              @media (max-width: 576px) {
+    .banner-image {
+      height: 140px !important;
+    }
+  }
         `}
       </style>
       <div
@@ -180,54 +185,56 @@ const UserBanner = () => {
               key={banner._id}
               className={`carousel-item ${index === 0 ? "active" : ""}`}
             >
-              <div
-                className="banner-image"
-                style={{
-                  backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.3)), url(${banner.BannerImage})`,
-                  backgroundSize: "cover",
-                  backgroundPosition: "center",
-                  height: "200px",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+              <Link to="/refer">
                 <div
-                  className="banner-content text-center p-3"
+                  className="banner-image"
                   style={{
-                    fontFamily: "'Roboto', -apple-system, sans-serif",
-                    maxWidth: "90%",
+                    backgroundImage: `linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.1)), url(${banner.BannerImage})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    height: "200px",
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {banner.BannerText && (
-                    <h3
-                      className="fw-bold mb-2"
-                      style={{
-                        color: "#6B8E23",
-                        fontSize: "1.8rem",
-                        textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)",
-                        lineHeight: "1.2",
-                      }}
-                    >
-                      {banner.BannerText}
-                    </h3>
-                  )}
-                  {banner.BannerDesc && (
-                    <p
-                      className="mb-0 typewriter-desc"
-                      style={{
-                        color: "white",
-                        fontSize: "1rem",
-                        textShadow: "1px 1px 3px rgba(0, 0, 0, 0.5)",
-                        lineHeight: "1.4",
-                      }}
-                    >
-                      {banner.BannerDesc}
-                    </p>
-                  )}
+                  <div
+                    className="banner-content text-center p-3"
+                    style={{
+                      fontFamily: "'Roboto', -apple-system, sans-serif",
+                      maxWidth: "90%",
+                    }}
+                  >
+                    {/* {banner.BannerText && (
+                      <h3
+                        className="fw-bold mb-2"
+                        style={{
+                          color: "#6B8E23",
+                          fontSize: "1.8rem",
+                          textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)",
+                          lineHeight: "1.2",
+                        }}
+                      >
+                        {banner.BannerText}
+                      </h3>
+                    )}
+                    {banner.BannerDesc && (
+                      <p
+                        className="mb-0 typewriter-desc"
+                        style={{
+                          color: "white",
+                          fontSize: "1rem",
+                          textShadow: "1px 1px 3px rgba(0, 0, 0, 0.5)",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        {banner.BannerDesc}
+                      </p>
+                    )} */}
+                  </div>
                 </div>
-              </div>
+              </Link>
             </div>
           ))}
         </div>

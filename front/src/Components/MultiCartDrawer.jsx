@@ -14,13 +14,13 @@ const MultiCartDrawer = ({
     onJumpToSlot // Function to set selectedDate/Session in Home.jsx
 }) => {
     const user = JSON.parse(localStorage.getItem("user"));
-    const addresstype = localStorage.getItem("addresstype");
-    const address = JSON.parse(
-        localStorage.getItem(
-            addresstype === "apartment" ? "address" : "coporateaddress"
-        )
-    );
-
+    // const addresstype = localStorage.getItem("addresstype");
+    // const address = JSON.parse(
+    //     localStorage.getItem(
+    //         addresstype === "apartment" ? "address" : "coporateaddress"
+    //     )
+    // );
+ const address = JSON.parse(localStorage.getItem("currentLocation")??localStorage.getItem("primaryAddress"));
     const navigate = useNavigate();
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -100,10 +100,7 @@ const MultiCartDrawer = ({
                                 <div
                                     className="d-flex gap-2 viewcartbtn"
                                     onClick={() => {
-                                        const address =
-                                            addresstype == "apartment"
-                                                ? JSON.parse(localStorage.getItem("address"))
-                                                : JSON.parse(localStorage.getItem("coporateaddress"));
+                                         const address = JSON.parse(localStorage.getItem("currentLocation")??localStorage.getItem("primaryAddress"));
                                         if (!address) {
                                             Swal2.fire({
                                                 toast: true,

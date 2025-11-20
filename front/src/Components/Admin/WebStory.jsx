@@ -40,9 +40,7 @@ const WebStory = () => {
   const getAddWebstory = async () => {
     try {
       setIsDataLoading(true);
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getstories"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getstories");
       if (res.status === 200) {
         setAddWebstory(res.data.getbanner.reverse());
       }

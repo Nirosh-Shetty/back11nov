@@ -7,7 +7,8 @@
   --secondary-text: #6b6b6b;
   --turmeric-golden: #e6b800;
   --green-cardamom: #6b8e23;
-  --copper-accents: #B87333;
+  --copper-accents: #b87333;
+  --warm-beige-bg: #fdfaf5; /* Background from your screenshot */
   --cuminBrown: #A0522D;
   --steel-light:#c0c0c0;
 }
@@ -18,13 +19,13 @@
 /* *{
   outline:2px solid black ;
  } */
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Inter", sans-serif;
 }
-
 .App-logo {
   height: 40vmin;
   pointer-events: none;

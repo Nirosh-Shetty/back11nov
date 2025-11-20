@@ -762,3 +762,276 @@ letter-spacing: -0.6px;
     display: flex;
     justify-content: center;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Addressmangemnt.jsx css */
+
+/* Address Management Styles */
+.address-list .card {
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.address-list .card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.address-list .card.border-success {
+  border: 2px solid #28a745 !important;
+  background: #f8fff9;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Address Details */
+.address-details {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-top: 8px;
+}
+
+/* Button Styles */
+.btn-success {
+  background: #6B8E23;
+  border: 1px solid #6B8E23;
+  font-weight: 600;
+  padding: 10px 20px;
+}
+
+.btn-success:hover {
+  background: #5a7a1c;
+  border-color: #5a7a1c;
+}
+
+.btn-outline-secondary {
+  border: 1px solid #C0C0C0;
+  color: #2C2C2C;
+  min-width: 80px;
+}
+
+/* Dropdown Styles */
+.dropdown-toggle::after {
+  margin-left: 8px;
+}
+
+.dropdown-menu {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.dropdown-item {
+  padding: 8px 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.dropdown-item:hover {
+  background: #F8F6F0;
+}
+
+.dropdown-item.text-danger:hover {
+  background: #f8d7da;
+}
+
+/* Alert Styles */
+.alert {
+  border-radius: 8px;
+  border: none;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Badge Styles */
+.badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* Empty State */
+.card .text-muted {
+  color: #6c757d !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .address-list .card-body {
+    padding: 16px;
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .dropdown {
+    margin-top: 12px;
+    align-self: flex-end;
+  }
+  
+  .btn-success {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+}
+
+/* Loading States */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Transaction Summary Hover */
+.transaction-summary {
+  transition: all 0.3s ease;
+}
+
+.transaction-summary:hover {
+  transform: translateX(5px);
+}
+
+/* Address Management Styles */
+.address-groups {
+  padding: 0 10px;
+}
+
+.address-type-section {
+  border-radius: 16px;
+}
+
+.address-type-header {
+  transition: all 0.3s ease;
+}
+
+.address-type-header:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.address-list-expanded {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.address-details {
+  background: rgba(107, 142, 35, 0.05);
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid #6B8E23;
+}
+
+.address-detail-item {
+  margin-bottom: 4px;
+}
+
+.address-detail-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Card Styles */
+.card.border-success {
+  border: 2px solid #28a745 !important;
+  background: linear-gradient(135deg, #f8fff9 0%, #f0fff4 100%);
+}
+
+/* Button Styles */
+.btn-outline-success, .btn-outline-primary {
+  border-width: 1.2px;
+  font-weight: 500;
+  padding: 6px 12px;
+}
+
+.btn-outline-success:hover {
+  background: #6B8E23;
+  border-color: #6B8E23;
+}
+
+.btn-outline-primary:hover {
+  background: #6B8E23;
+  border-color: #6B8E23;
+  color: white;
+}
+
+/* Badge Styles */
+.badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .address-type-header {
+    padding: 16px !important;
+  }
+  
+  .d-flex.justify-content-between.align-items-center {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .d-flex.gap-2 {
+    margin-top: 12px;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .btn {
+    flex: 1;
+    margin: 0 4px;
+  }
+}
+
+/* Loading States */
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Hover Effects */
+.address-type-header:hover {
+  background: #F5F0E6 !important;
+}

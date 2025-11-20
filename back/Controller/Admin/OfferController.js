@@ -71,7 +71,7 @@ exports.getUserOffers = async (req, res) => {
         const currentDate = new Date();
         let id = req.body.id;
         let location = req.body.location;
-        // console.log("location", req.body)
+        console.log("location", req.body)
 
         if (!id) return res.status(200).json({
             success: true,

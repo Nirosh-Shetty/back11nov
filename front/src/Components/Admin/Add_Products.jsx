@@ -31,6 +31,8 @@ const Add_Products = () => {
     setShow4(true);
     setData1(item);
     setCategory(item?.foodcategory);
+    setAggregatedPrice(item?.aggregatedprice);
+    setMenuCategory(item?.menuCategory);
     setPriority(item?.Priority);
     setProductPrice(item?.foodprice);
     setTotalStock(item?.totalstock);
@@ -44,6 +46,7 @@ const Add_Products = () => {
     setGST(item?.gst);
     setQuantity(item?.quantity);
     setMealType(item?.foodmealtype);
+    setAggregatedPrice(item?.aggregatedPrice);
   };
   const handleClose5 = () => setShow5(false);
   const handleShow5 = () => setShow5(true);
@@ -60,10 +63,10 @@ const Add_Products = () => {
   // Form data states
   const [Category, setCategory] = useState("");
   const [categoryname, setcategoryname] = useState("");
-
   const [ProductName, setProductName] = useState("");
   const [ProductImage, setProductImage] = useState("");
   const [ProductPrice, setProductPrice] = useState("");
+  const [aggregatedPrice, setAggregatedPrice] = useState("");
   const [GST, setGST] = useState("");
   const [Priority, setPriority] = useState("");
   const [TotalAmount, setTotalAmount] = useState(0);
@@ -84,6 +87,8 @@ const Add_Products = () => {
   const [gstlist, setGstList] = useState([]);
   const [searchTerm, setSearchH] = useState("");
   const [categoryName, setCategoryName] = useState([]);
+  const [menu, setMenu] = useState([]);
+  const [menuCategory, setMenuCategory] = useState("");
 
   // Pagination
   const [pageNumber, setPageNumber] = useState(0);
@@ -98,9 +103,7 @@ const Add_Products = () => {
   const getAddproducts = async () => {
     try {
       setIsDataLoading(true);
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getFoodItems"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getFoodItems");
       if (res.status === 200) {
         setAddproducts(res.data.data);
         setNoChangeData(res.data.data);
@@ -124,13 +127,22 @@ const Add_Products = () => {
     }
   };
 
+  const fetchMenuCategories = async () => {
+    try {
+      const res = await axios.get(
+        "http://localhost:7013/api/admin/menuCategory/getmenucategory"
+      );
+      setMenu(res.data.categories);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   // Get GST
   const getGst = async () => {
     try {
       setIsDataLoading(true);
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getgst"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getgst");
       if (res.status === 200) {
         setGstList(res.data.gst.reverse());
         setGST(res.data.gst.reverse()[0] || 0);
@@ -153,6 +165,7 @@ const Add_Products = () => {
       if (!Unit) return alert("Please Add Product Unit");
       if (!ProductDesc) return alert("Please Add Product Description");
       if (!categoryname) return alert("Please Add Category");
+      if (!menuCategory) return alert("Please Add Menu Category");
 
       const allowedImageTypes = [
         "image/jpeg",
@@ -169,6 +182,7 @@ const Add_Products = () => {
       const formdata = new FormData();
       formdata.append("foodcategory", Category);
       formdata.append("categoryName", categoryname);
+      formdata.append("menuCategory", menuCategory);
       formdata.append("foodname", ProductName);
       formdata.append("Foodgallery", ProductImage);
       formdata.append("foodprice", ProductPrice);
@@ -179,6 +193,7 @@ const Add_Products = () => {
       formdata.append("unit", Unit);
       formdata.append("quantity", Quantity);
       formdata.append("fooddescription", ProductDesc);
+      formdata.append("aggregatedPrice", aggregatedPrice);
 
       setIsLoading(true);
       const config = {
@@ -199,6 +214,7 @@ const Add_Products = () => {
         setProductPrice("");
         setPriority("");
         setTotalAmount(0);
+        setAggregatedPrice(0);
         // setTotalStock("");
         // setRemainingStock("");
         setUnit("");
@@ -242,7 +258,8 @@ const Add_Products = () => {
       // if (!TotalStock) return alert("Please Add Product Total Stock");
       if (!Unit) return alert("Please Add Product Unit");
       if (!ProductDesc) return alert("Please Add Product Description");
-      if (!categoryname) return alert("Please Add Product Category");
+      // if (!categoryname) return alert("Please Add Packer Category");
+      // if (!menuCategory) return alert("Please Add Menu Product Category");
 
       if (ProductImage) {
         const allowedImageTypes = [
@@ -261,6 +278,7 @@ const Add_Products = () => {
       const formdata = new FormData();
       formdata.append("foodcategory", Category);
       formdata.append("categoryName", categoryname);
+      formdata.append("menuCategory", menuCategory);
       formdata.append("foodname", ProductName);
       if (ProductImage) formdata.append("Foodgallery", ProductImage);
       formdata.append("foodprice", ProductPrice);
@@ -271,6 +289,7 @@ const Add_Products = () => {
       formdata.append("unit", Unit);
       formdata.append("quantity", Quantity);
       formdata.append("fooddescription", ProductDesc);
+      formdata.append("aggregatedPrice", aggregatedPrice);
       formdata.append("userid", id);
 
       setIsLoading(true);
@@ -364,6 +383,7 @@ const Add_Products = () => {
     getAddproducts();
     getGst();
     fetchCategories();
+    fetchMenuCategories();
   }, []);
 
   useEffect(() => {
@@ -419,12 +439,9 @@ const Add_Products = () => {
   const markAllSoldOut = async () => {
     try {
       setIsLoading(true);
-      await axios.put(
-        `http://localhost:7013/api/admin/makeSoldout`,
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      await axios.put(`http://localhost:7013/api/admin/makeSoldout`, {
+        headers: { "Content-Type": "application/json" },
+      });
       alert("All products marked as sold out");
       await getAddproducts();
     } catch (error) {
@@ -519,7 +536,8 @@ const Add_Products = () => {
                     <th>Load Date</th>
                     <th>Load Time</th>
                     {/* <th>Priority</th> */}
-                    <th>Category</th>
+                    <th>Packer Category</th>
+                    <th>Menu Category</th>
                     <th>Type</th>
 
                     <th>Name</th>
@@ -527,6 +545,7 @@ const Add_Products = () => {
                     <th>Unit</th>
                     <th>Description</th>
                     <th>Base Price</th>
+                    <th>Aggregated Price</th>
                     {/* <th>Total Stock</th> */}
                     {/* <th>Remaining Stock</th> */}
                     <th>Status</th>
@@ -557,6 +576,9 @@ const Add_Products = () => {
                         {items.categoryName}
                       </td>
                       <td style={{ paddingTop: "20px" }}>
+                        {items.menuCategory}
+                      </td>
+                      <td style={{ paddingTop: "20px" }}>
                         {items.foodcategory}
                       </td>
                       <td style={{ paddingTop: "20px" }}>{items?.foodname}</td>
@@ -581,6 +603,9 @@ const Add_Products = () => {
                         {items?.fooddescription}
                       </div>
                       <td style={{ paddingTop: "20px" }}>{items?.foodprice}</td>
+                      <td style={{ paddingTop: "20px" }}>
+                        {items?.aggregatedPrice}
+                      </td>
                       {/* <td style={{ paddingTop: "20px" }}>
                         {items?.totalstock}
                       </td>
@@ -656,7 +681,7 @@ const Add_Products = () => {
           <Modal.Body>
             <div className="row">
               <div className="do-sear mt-2">
-                <label>Select Category Name</label>
+                <label>Select Packers Category Name</label>
                 <select
                   onChange={(e) => setcategoryname(e.target.value)}
                   className="form-select vi_0"
@@ -666,6 +691,23 @@ const Add_Products = () => {
                   {categoryName.map((cat) => (
                     <option key={cat._id} value={cat.CategoryName}>
                       {cat.CategoryName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="row">
+              <div className="do-sear mt-2">
+                <label>Select Menu Category </label>
+                <select
+                  onChange={(e) => setMenuCategory(e.target.value)}
+                  className="form-select vi_0"
+                  value={menuCategory}
+                >
+                  <option value="">Select Category</option>
+                  {menu.map((cat) => (
+                    <option key={cat._id} value={cat.menuCategory}>
+                      {cat.menuCategory}
                     </option>
                   ))}
                 </select>
@@ -732,6 +774,19 @@ const Add_Products = () => {
                   placeholder="Enter Product Price"
                   value={ProductPrice}
                   onChange={(e) => setProductPrice(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="row">
+              <div className="do-sear mt-2">
+                <label>Aggregate Price</label>
+                <input
+                  type="number"
+                  className="vi_0"
+                  min={0}
+                  placeholder="Enter Aggregate Product Price"
+                  value={aggregatedPrice}
+                  onChange={(e) => setAggregatedPrice(e.target.value)}
                 />
               </div>
             </div>
@@ -829,16 +884,33 @@ const Add_Products = () => {
           <Modal.Body>
             <div className="row">
               <div className="do-sear mt-2">
-                <label>Select Category Name</label>
+                <label>Select Packers Category</label>
                 <select
                   onChange={(e) => setcategoryname(e.target.value)}
                   className="form-select vi_0"
                   value={categoryname}
                 >
-                  <option value="">{Data1?.CategoryName}</option>
+                  <option value="">{Data1?.categoryName}</option>
                   {categoryName.map((cat) => (
                     <option key={cat._id} value={cat.CategoryName}>
                       {cat.CategoryName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="row">
+              <div className="do-sear mt-2">
+                <label>Select Menu Category </label>
+                <select
+                  onChange={(e) => setMenuCategory(e.target.value)}
+                  className="form-select vi_0"
+                  value={menuCategory}
+                >
+                  <option value="">{Data1?.menuCategory}</option>
+                  {menu.map((cat) => (
+                    <option key={cat._id} value={cat.menuCategory}>
+                      {cat.menuCategory}
                     </option>
                   ))}
                 </select>
@@ -903,6 +975,18 @@ const Add_Products = () => {
                   value={ProductPrice}
                   placeholder={Data1?.foodprice}
                   onChange={(e) => setProductPrice(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="row">
+              <div className="do-sear mt-2">
+                <label>Aggregated Price</label>
+                <input
+                  type="number"
+                  className="vi_0"
+                  value={aggregatedPrice}
+                  placeholder={Data1?.aggregatedPrice}
+                  onChange={(e) => setAggregatedPrice(e.target.value)}
                 />
               </div>
             </div>

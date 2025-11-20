@@ -145,13 +145,9 @@ async function updateStockLegacy(products) {
   }
 }
 class customerCart {
-  // --- MODIFIED ADD FOOD ORDER CONTROLLER ---
-  async addfoodorder(req, res) {
+ async addfoodorder(req, res) {
     try {
-      // Check if this is the new Multi-Order flow
       if (req.body.orderGroups && Array.isArray(req.body.orderGroups)) {
-        // === NEW MULTI-ORDER LOGIC ===
-
         const {
           discountWallet,
           coupon,
@@ -165,23 +161,23 @@ class customerCart {
           studentName,
           studentClass,
           studentSection,
-          // hubId,
+          addressType,
+          coordinates,
+          hubName,
+          mainUsername,
+          mainMobile,
         } = req.body;
 
         const savedOrderDetails = [];
         const orderGroups = req.body.orderGroups;
 
-        // Loop through each order group
-        console.log("orderGro", orderGroups);
+        // Loop through and create each order
         for (let i = 0; i < orderGroups.length; i++) {
           const group = orderGroups[i];
           const isFirstOrder = i === 0;
 
-          // Create the order data from the group
-          // We spread the 'group' object which contains all its specific data
           const newOrderData = {
             ...group,
-            // Apply grand-total discounts ONLY to the first order
             discountWallet: isFirstOrder ? discountWallet || 0 : 0,
             coupon: isFirstOrder ? coupon || 0 : 0,
             couponId: isFirstOrder ? couponId || null : null,
@@ -193,30 +189,97 @@ class customerCart {
             studentName: studentName,
             studentClass: studentClass,
             studentSection: studentSection,
-            // hubId: group.hubId || hubId,
+            addressType,
+            coordinates,
+            hubName,
           };
 
           const newOrder = new customerCartModel(newOrderData);
           const savedOrder = await newOrder.save();
           savedOrderDetails.push(savedOrder);
 
-          // console.log("gtoup", group.hubId);
-          await updateStockFromHubMenu(group.hubId, group.allProduct, group.deliveryDate, group.session);
-        }
-
-        // 1. Update Wallet
-        if (discountWallet > 0 && mainCustomerId) {
-          await Userlist.findByIdAndUpdate(mainCustomerId, {
-            $inc: { wallet: -discountWallet },
-          });
-        }
-
-        // 2. Update Coupon Usage
-        if (coupon > 0 && couponId) {
-          await Coupon.findOneAndUpdate(
-            { couponName: couponId },
-            { $inc: { used: 1 } }
+          // ++ 2. SEND WHATSAPP NOTIFICATION (FROM OLD LOGIC) ++
+          sendorderwhatsapp(
+            savedOrder?.orderid,
+            savedOrder.username,
+            savedOrder.Mobilenumber,
+            savedOrder.slot,
+            savedOrder.delivarylocation
           );
+
+          // Update stock (This was already in your new function)
+          await updateStockFromHubMenu(
+            group.hubId,
+            group.allProduct,
+            group.deliveryDate,
+            group.session
+          );
+        }
+
+        // ++ 3. HANDLE REFERRAL REWARDS (FROM OLD LOGIC) ++
+        if (savedOrderDetails.length > 0) {
+          try {
+            console.log(
+              `Referral check triggered for order ${savedOrderDetails[0]._id}`
+            );
+            // We only pass the FIRST order for the check
+            await handleReferralRewards(savedOrderDetails[0]); 
+          } catch (referralError) {
+            console.error(
+              `Error processing referral for order ${savedOrderDetails[0]._id}:`,
+              referralError
+            );
+          }
+        }
+        
+        // ++ 4. CLEAR THE USER'S CART (FROM OLD LOGIC) ++
+        if (mainCustomerId) {
+          await CartModel.deleteMany({ userId: mainCustomerId });
+        }
+
+        // ++ 5. UPDATE WALLET BALANCE (FROM OLD LOGIC) ++
+        if (discountWallet > 0 && mainCustomerId) {
+          try {
+            const wallet = await WalletModel.findOne({ userId: mainCustomerId });
+            if (wallet) {
+              wallet.transactions.push({
+                amount: discountWallet,
+                type: "debit",
+                description: `Applied to orders: ${savedOrderDetails.map(o => o.orderid).join(', ')}`,
+                isFreeCash: false,
+                expiryDate: null,
+              });
+              wallet.balance -= Number(discountWallet);
+              wallet.updatedAt = Date.now();
+              await wallet.save();
+            }
+          } catch (walletError) {
+            console.error("Failed to update wallet:", walletError);
+          }
+        }
+
+        // ++ 6. UPDATE COUPON USAGE (FROM OLD LOGIC) ++
+        if (couponId && mainMobile) {
+          try {
+            const coupons = await CouponModel.find({
+              couponName: couponId?.toLowerCase(),
+            });
+            for (let coupon of coupons) {
+              let userExists = coupon.applyUser.find(
+                (ele) => ele?.MobileNumber === mainMobile
+              );
+              if (!userExists) {
+                coupon.applyUser.push({
+                  Name: mainUsername,
+                  MobileNumber: mainMobile,
+                });
+                await coupon.save();
+                break; // Stop after adding to one coupon
+              }
+            }
+          } catch (couponError) {
+            console.error("Failed to update coupon usage:", couponError);
+          }
         }
 
         return res.status(200).json({
@@ -224,52 +287,12 @@ class customerCart {
           message: `${orderGroups.length} orders created successfully.`,
           data: savedOrderDetails,
         });
+
       } else {
-        // === LEGACY / ZERO-TOTAL ORDER LOGIC ===
-        // This handles 0-total orders or any old calls
-
-        let {
-          hubId, // This is the HubId from the main config
-          allProduct,
-          discountWallet,
-          coupon,
-          couponId,
-          customerId,
-        } = req.body;
-
-        // Save the single order
-        const newOrder = new customerCartModel(req.body);
-        const savedOrder = await newOrder.save();
-
-        // Update stock
-        // We MUST have a hubId to use the new logic
-        // if (hubId) {
-        //   await updateStockFromHubMenu(hubId, allProduct);
-        // } else {
-          // Fallback to old logic if no HubId is present
-          console.warn("No HubId found, falling back to legacy stock update.");
-          await updateStockLegacy(allProduct);
-        // }
-
-        // Update Wallet
-        if (discountWallet > 0 && customerId) {
-          await Userlist.findByIdAndUpdate(customerId, {
-            $inc: { wallet: -discountWallet },
-          });
-        }
-
-        // Update Coupon
-        if (coupon > 0 && couponId) {
-          await Coupon.findOneAndUpdate(
-            { couponName: couponId },
-            { $inc: { used: 1 } }
-          );
-        }
-
-        return res.status(200).json({
-          success: true,
-          message: "Order Successfully Done",
-          data: savedOrder,
+        // Fallback for old order structure (if needed)
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid order format. 'orderGroups' array is required." 
         });
       }
     } catch (error) {
@@ -1109,7 +1132,7 @@ class customerCart {
         locations,
         status,
         orderType = "corporate",
-        hub,
+        hub, // New hub filter parameter
       } = req.query;
 
       // Build filter object
@@ -1169,6 +1192,7 @@ class customerCart {
           { paymentmethod: searchRegex },
         ];
 
+        // अगर मोबाइल नंबर है और वो pure number है तो उसी को number के रूप में चेक करो
         if (!isNaN(search.trim())) {
           orFilters.push({ Mobilenumber: Number(search.trim()) });
         }
@@ -2543,31 +2567,20 @@ async function handleReferralRewards(order) {
       `Pending referral found for user ${friend._id}. Processing rewards.`
     );
 
-    // --- Referral is pending, proceed with rewards ---
     const referrer = await CustomerModel.findById(friend.referral.referredBy);
-    // Use findOneAndUpdate to ensure settings exist and we get the latest version
+    
+    // Use findOneAndUpdate to ensure settings exist
     const settings = await ReferralSettings.findOneAndUpdate(
       {},
       { $setOnInsert: {} },
       { upsert: true, new: true, setDefaultsOnInsert: true }
     );
 
-    // Determine reward amounts (with safe defaults)
-    // Friend reward is handled at signup now, only process referrer reward here
-    let referrerReward = settings?.referrerRewardAmount ?? 25;
+    let referrerReward = settings?.referrerRewardAmount ?? 25; // Use new model name
 
-    // Check for referrer and potential custom reward
     if (referrer) {
       if (referrer.customReferralReward != null) {
-        // Check explicitly for non-null/undefined
         referrerReward = referrer.customReferralReward;
-        console.log(
-          `Using custom reward ₹${referrerReward} for referrer ${referrer._id}`
-        );
-      } else {
-        console.log(
-          `Using default reward ₹${referrerReward} for referrer ${referrer._id}`
-        );
       }
 
       if (referrerReward > 0) {
@@ -2582,42 +2595,47 @@ async function handleReferralRewards(order) {
             type: "credit",
             description: `Referral reward for ${friend.Fname || friend.Mobile}`,
           });
-          await referrerWallet.save(); // Save wallet update immediately
+          await referrerWallet.save(); 
           console.log(
             `Credited ₹${referrerReward} to referrer wallet ${referrer._id}`
           );
-
+          
           referrer.referralEarnings =
             (referrer.referralEarnings || 0) + referrerReward;
           settings.totalReferrerPayout =
             (settings.totalReferrerPayout || 0) + referrerReward;
         } else {
-          console.warn(
-            `Wallet not found for referrer ${referrer._id}. Cannot credit wallet or update earnings/payout.`
-          );
-          // If wallet isn't credited, we shouldn't update earnings/payout totals
-          referrerReward = 0; // Set reward to 0 so totals aren't updated below
+            // ++ Create wallet if it doesn't exist ++
+            await WalletModel.create({
+                userId: referrer._id,
+                balance: referrerReward,
+                transactions: [{
+                    amount: referrerReward,
+                    type: "credit",
+                    description: `Referral reward for ${friend.Fname || friend.Mobile}`,
+                }]
+            });
+            console.log(
+              `Created wallet and credited ₹${referrerReward} to referrer ${referrer._id}`
+            );
+            referrer.referralEarnings = (referrer.referralEarnings || 0) + referrerReward;
+            settings.totalReferrerPayout = (settings.totalReferrerPayout || 0) + referrerReward;
         }
-      } else {
-        console.log(
-          `Referrer reward is 0 for referrer ${referrer._id}. No wallet credit.`
-        );
       }
     } else {
       console.warn(
-        `Referrer user (${friend.referral.referredBy}) not found. Cannot credit referrer or update earnings/payout.`
+        `Referrer user (${friend.referral.referredBy}) not found. Cannot credit referrer.`
       );
-      referrerReward = 0; // Set reward to 0 so totals aren't updated below
+      referrerReward = 0; // Set reward to 0 so totals aren't updated
     }
 
     friend.referral.status = "success";
     friend.referral.successDate = new Date();
 
     await friend.save();
-    if (referrer && referrerReward > 0) await referrer.save(); // Save referrer earnings if updated
-    if (referrerReward > 0) await settings.save(); // Save total payout if updated
-    // --- End FIX ---
-
+    if (referrer && referrerReward > 0) await referrer.save();
+    if (referrerReward > 0) await settings.save();
+    
     console.log(`Referral status for user ${friend._id} updated to 'success'.`);
     if (referrer && referrerReward > 0) {
       await sendReferralSuccessNotification(

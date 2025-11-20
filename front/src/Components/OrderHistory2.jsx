@@ -61,7 +61,11 @@ const OrderHistory = () => {
   const getorders = async (id) => {
     try {
       let res = await axios.get(
+<<<<<<< HEAD
         "http://localhost:7013/api/admin/getallordersbyUserId/" + id
+=======
+        "http://localhost:7013/api/admin/getallordersbyUserId/" + id
+>>>>>>> fa6a4b781c4d232c73b640ae22091fa9def85f47
       );
       if (res.status === 200) {
         setorders(res.data.order);

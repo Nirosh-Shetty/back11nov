@@ -2486,9 +2486,7 @@ const DashboardPage = () => {
 
   const getBegs = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getbags"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getbags");
       if (res.status == 200) {
         setAllBags(res.data.bags);
       }

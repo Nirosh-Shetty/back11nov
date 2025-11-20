@@ -1,7 +1,7 @@
 const transactionModel = require("../../Model/User/phonepay");
 const MERCHANT_ID = "M220YAGWUQBO7";
 const SECRET_KEY = "24f2c24e-65cc-43b7-ae1d-fe8440fb3a7c";
-const CALLBACK_URL = "http://localhost:7013";
+const CALLBACK_URL = "https://dd-merge-backend-1.onrender.com";
 const axios = require("axios");
 const crypto = require('crypto');
 const CartModel = require("../../Model/User/Cart");
@@ -42,9 +42,9 @@ class Transaction {
         merchantTransactionId: data._id,
         merchantUserId: userId,
         amount: amount * 100,
-        redirectUrl: `http://localhost:7013/payment-success?transactionId=${data._id}&userID=${userId}`,
+        redirectUrl: `https://dd-merge-backend-1.onrender.com/payment-success?transactionId=${data._id}&userID=${userId}`,
         redirectMode: "GET",
-        callbackUrl: "http://localhost:7013/api/user/payment-callback",
+        callbackUrl: "https://dd-merge-backend-1.onrender.com/api/user/payment-callback",
         mobileNumber: Mobile,
         paymentInstrument: {
           type: "PAY_PAGE",
