@@ -31,6 +31,10 @@ const hubMenuSchema = new mongoose.Schema(
       type: Number, // The specific price for this hub ("Hub Pricing")
       required: true,
     },
+    reservationPrice: {
+      type: Number,
+      required: true,
+    },
     totalQuantity: {
       type: Number, // The stock for this hub/date/session ("Quantity")
       required: true,

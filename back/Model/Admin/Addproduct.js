@@ -16,6 +16,10 @@ const AddRestaurants = new Schema(
     foodprice: {
       type: String,
     },
+    foodTags: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "FoodTags"
+    }],
     foodmealtype: {
       type: String,
     },

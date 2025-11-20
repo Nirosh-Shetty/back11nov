@@ -24,7 +24,7 @@ mongoose
   .catch(() => console.log("DB is not Connected"));
 
 
-  const server = http.createServer(app);
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
@@ -49,9 +49,10 @@ const Social = require("./Routes/Admin/SocialMedia");
 const LiveStream = require("./Routes/Admin/Livestream")
 const Gst = require("./Routes/Admin/Gst");
 const Coupon = require("./Routes/Admin/Coupon");
-const offerRoutes=require('./Routes/Admin/OfferRoute');
-const reportRoutes=require('./Routes/Admin/OfferReport');
-const referralSettingsRoutes =require('./Routes/Admin/ReferralSettingsRoutes')
+const offerRoutes = require('./Routes/Admin/OfferRoute');
+const reportRoutes = require('./Routes/Admin/OfferReport');
+const referralSettingsRoutes = require('./Routes/Admin/ReferralSettingsRoutes')
+const FoodTagsRoutes = require('./Routes/Admin/FoodTags');
 //User
 const GeneralEnquiry = require("./Routes/User/GeneralEnquiry");
 const Userlist = require("./Routes/User/Userlist");
@@ -60,12 +61,12 @@ const Addrequestaddress = require("./Routes/User/Addrequestaddress");
 const SelectedAddress = require("./Routes/User/SelectedAddress");
 const paymentRoute = require("./Routes/User/phonepay");
 const Addcart = require("./Routes/User/Cart");
-const Wallet=require('./Routes/User/Wallet');
-const CloseShop=require('./Routes/Admin/Resturant')
-const PackerRoutes=require("./Routes/Packer/PackerRoute")
-const HubRoute=require('./Routes/Packer/HubRoute')
-const BagRoutes=require('./Routes/Admin/Bag');
-const ReasonRoutes=require('./Routes/Admin/Reasons')
+const Wallet = require('./Routes/User/Wallet');
+const CloseShop = require('./Routes/Admin/Resturant')
+const PackerRoutes = require("./Routes/Packer/PackerRoute")
+const HubRoute = require('./Routes/Packer/HubRoute')
+const BagRoutes = require('./Routes/Admin/Bag');
+const ReasonRoutes = require('./Routes/Admin/Reasons')
 const CategoryRoutes = require('./Routes/Admin/AdminCategory')
 const PackingRoutes = require('./Routes/Packer/Packing')
 const hubMenuRoutes = require("./Routes/Admin/HubMenu");
@@ -92,12 +93,13 @@ app.use("/api/admin", CloseShop);
 app.use('/api/admin', offerRoutes);
 // app.use('/api/admin', bannerRoutes);
 app.use('/api/admin', reportRoutes);
-app.use('/api/Hub',HubRoute)
-app.use('/api/admin',BagRoutes)
-app.use('/api/admin',ReasonRoutes)
+app.use('/api/Hub', HubRoute)
+app.use('/api/admin', BagRoutes)
+app.use('/api/admin', ReasonRoutes)
 app.use("/api/admin/referral-settings", referralSettingsRoutes);
 app.use('/api/admin', CategoryRoutes)
 app.use("/api/admin/hub-menu", hubMenuRoutes);
+app.use('/api/admin', FoodTagsRoutes);
 
 //User
 app.use("/api/user", paymentRoute);
@@ -106,14 +108,14 @@ app.use("/api/User", Userlist);
 app.use("/api/User", BookingList);
 app.use("/api/User", Addrequestaddress);
 app.use("/api/User", SelectedAddress);
-app.use("/api/cart",Addcart);
-app.use("/api/wallet",Wallet);
-app.use("/api/packer",PackerRoutes);
+app.use("/api/cart", Addcart);
+app.use("/api/wallet", Wallet);
+app.use("/api/packer", PackerRoutes);
 app.use("/api/packer/packing", PackingRoutes);
 
 
 
-app.use('/flyer',(req,res)=>{
+app.use('/flyer', (req, res) => {
   return res.redirect('/')
 })
 io.on('connection', (socket) => {
@@ -123,7 +125,7 @@ io.on('connection', (socket) => {
   });
 });
 
-global.io=io;
+global.io = io;
 
 const PORT = process.env.PORT || 7013;
 app.use(express.static(path.join(__dirname, 'build'))); // Change 'build' to your frontend folder if needed
@@ -131,7 +133,7 @@ app.use(express.static(path.join(__dirname, 'build'))); // Change 'build' to you
 // Redirect all requests to the index.html file
 
 app.get("*", (req, res) => {
-  return  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  return res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 server.listen(PORT, () => {
