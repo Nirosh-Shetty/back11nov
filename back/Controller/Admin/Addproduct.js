@@ -43,6 +43,16 @@ class AddRestaurantdata {
     }
 
     try {
+      // parse incoming foodTags (if any) from multipart/form-data
+      let parsedFoodTags = [];
+      if (req.body.foodTags) {
+        try {
+          parsedFoodTags = typeof req.body.foodTags === 'string' ? JSON.parse(req.body.foodTags) : req.body.foodTags;
+        } catch (e) {
+          // if not JSON, try comma separated
+          parsedFoodTags = String(req.body.foodTags).split(',').map(s => s.trim()).filter(Boolean);
+        }
+      }
       // Create new food item instance
       const foodItem = new AddRestaurants({
         foodname,
@@ -67,7 +77,8 @@ class AddRestaurantdata {
         loaddate,
         loadtime,
         Foodgallery,  // Add gallery images
-       
+        foodTags: parsedFoodTags,
+
       });
 
       // Save the new food item in the database
@@ -117,7 +128,7 @@ class AddRestaurantdata {
       }
 
       // Object to hold update fields
-      let obj = {  };
+      let obj = {};
       let Foodgallery = [];
 
       // Check if files are uploaded and process them for Foodgallery
@@ -134,6 +145,15 @@ class AddRestaurantdata {
 
       if (Foodgallery.length > 0) {
         obj["Foodgallery"] = Foodgallery
+      }
+      // parse incoming foodTags
+      if (req.body.foodTags) {
+        try {
+          const parsed = typeof req.body.foodTags === 'string' ? JSON.parse(req.body.foodTags) : req.body.foodTags;
+          obj["foodTags"] = parsed;
+        } catch (e) {
+          obj["foodTags"] = String(req.body.foodTags).split(',').map(s => s.trim()).filter(Boolean);
+        }
       }
       // Dynamically add fields to the update object if they are provided
       if (foodname) obj["foodname"] = foodname;
@@ -160,7 +180,7 @@ class AddRestaurantdata {
       if (loadtime) obj["loadtime"] = loadtime;
 
       console.log(obj);
-      
+
 
       // Find food item by ID and update
       let data = await AddRestaurants.findByIdAndUpdate(
@@ -202,7 +222,7 @@ class AddRestaurantdata {
 
   async getFoodItems(req, res) {
     try {
-      const restaurant = await AddRestaurants.find({}).sort({ _id: -1 })
+      const restaurant = await AddRestaurants.find({}).populate('foodTags', 'tagName tagColor').sort({ _id: -1 })
 
       if (!restaurant) {
         return res.status(404).json({ error: "Restaurant not found" });
@@ -229,99 +249,111 @@ class AddRestaurantdata {
   //     return res.status(500).json({ error: "Internal Server Error" });
   //   }
   // }
-//   async getFoodItemsUnBlocks(req, res) {
-//     try {
-//       const restaurant = await AddRestaurants.aggregate([
-//         { $match: { blocked: false } },
-//         {
-//           $addFields: {
-//             minLocationPriority: {
-//               $min: {
-//                 $map: {
-//                   input: "$locationPrice",
-//                   as: "location",
-//                   in: { $ifNull: ["$$location.Priority", 0] }
-//                 }
-//               }
-//             }
-//           }
-//         },
-//         { $sort: { minLocationPriority: 1 } },
-//         {
-//           $addFields: {
-//             locationPrice: {
-//               $sortArray: {
-//                 input: "$locationPrice",
-//                 sortBy: { Priority: 1 }
-//               }
-//             }
-//           }
-//         }
-//       ]);
+  //   async getFoodItemsUnBlocks(req, res) {
+  //     try {
+  //       const restaurant = await AddRestaurants.aggregate([
+  //         { $match: { blocked: false } },
+  //         {
+  //           $addFields: {
+  //             minLocationPriority: {
+  //               $min: {
+  //                 $map: {
+  //                   input: "$locationPrice",
+  //                   as: "location",
+  //                   in: { $ifNull: ["$$location.Priority", 0] }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         },
+  //         { $sort: { minLocationPriority: 1 } },
+  //         {
+  //           $addFields: {
+  //             locationPrice: {
+  //               $sortArray: {
+  //                 input: "$locationPrice",
+  //                 sortBy: { Priority: 1 }
+  //               }
+  //             }
+  //           }
+  //         }
+  //       ]);
 
-//       // if (!restaurant || restaurant.length === 0) {
-//       //   return res.status(404).json({ error: "Restaurant not found" });
-//       // }
+  //       // if (!restaurant || restaurant.length === 0) {
+  //       //   return res.status(404).json({ error: "Restaurant not found" });
+  //       // }
 
-//       return res.status(200).json({ 
-//         success: "Food items retrieved successfully", 
-//         data: restaurant 
-//       });
-//     } catch (error) {
-//       console.error("Error retrieving food items:", error);
-//       return res.status(500).json({ error: "Internal Server Error" });
-//     }
-// }
+  //       return res.status(200).json({ 
+  //         success: "Food items retrieved successfully", 
+  //         data: restaurant 
+  //       });
+  //     } catch (error) {
+  //       console.error("Error retrieving food items:", error);
+  //       return res.status(500).json({ error: "Internal Server Error" });
+  //     }
+  // }
 
 
-async getFoodItemsUnBlocks(req, res) {
-  try {
-    const restaurant = await AddRestaurants.aggregate([
-      { 
-        $match: { 
-          blocked: false,
-          locationPrice: { $exists: true, $ne: null, $not: { $size: 0 } }
-        } 
-      },
-      {
-        $addFields: {
-          minLocationPriority: {
-            $min: {
-              $map: {
+  async getFoodItemsUnBlocks(req, res) {
+    try {
+      const restaurant = await AddRestaurants.aggregate([
+        {
+          $match: {
+            blocked: false,
+            locationPrice: { $exists: true, $ne: null, $not: { $size: 0 } }
+          }
+        },
+        {
+          $addFields: {
+            minLocationPriority: {
+              $min: {
+                $map: {
+                  input: "$locationPrice",
+                  as: "location",
+                  in: { $ifNull: ["$$location.Priority", 0] }
+                }
+              }
+            }
+          }
+        },
+        { $sort: { minLocationPriority: 1 } },
+        {
+          $addFields: {
+            locationPrice: {
+              $sortArray: {
                 input: "$locationPrice",
-                as: "location",
-                in: { $ifNull: ["$$location.Priority", 0] }
+                sortBy: { Priority: 1 }
               }
             }
           }
         }
-      },
-      { $sort: { minLocationPriority: 1 } },
-      {
-        $addFields: {
-          locationPrice: {
-            $sortArray: {
-              input: "$locationPrice",
-              sortBy: { Priority: 1 }
-            }
-          }
+      ]);
+
+      // if (!restaurant || restaurant.length === 0) {
+      //   return res.status(404).json({ error: "No restaurants found with location pricing" });
+      // }
+
+      // populate foodTags for aggregate result
+      const FoodTagsModel = require("../../Model/Admin/foodTags");
+      const tagMap = {};
+      const allTags = await FoodTagsModel.find({});
+      allTags.forEach(t => { tagMap[t._id.toString()] = { tagName: t.tagName, tagColor: t.tagColor, _id: t._id } });
+      const restaurantWithTags = restaurant.map(r => {
+        if (r.foodTags && Array.isArray(r.foodTags)) {
+          r.foodTags = r.foodTags.map(ft => (typeof ft === 'object' ? ft : tagMap[String(ft)])).filter(Boolean);
         }
-      }
-    ]);
+        return r;
+      });
 
-    // if (!restaurant || restaurant.length === 0) {
-    //   return res.status(404).json({ error: "No restaurants found with location pricing" });
-    // }
-
-    return res.status(200).json({ 
-      success: "Food items retrieved successfully", 
-      data: restaurant 
-    });
-  } catch (error) {
-    console.error("Error retrieving food items:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+      return res.status(200).json({
+        success: "Food items retrieved successfully",
+        data: restaurantWithTags
+      });
+    } catch (error) {
+      console.error("Error retrieving food items:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
   }
-}
   async deleteFoodItem(req, res) {
     try {
       const id = req.params.id;
@@ -486,7 +518,7 @@ async getFoodItemsUnBlocks(req, res) {
     }
   }
 
-  async addProductHubWise(req,res){
+  async addProductHubWise(req, res) {
     try {
       const { productId } = req.params;
       const {
@@ -500,7 +532,7 @@ async getFoodItemsUnBlocks(req, res) {
         offerprice,
         basePrice
       } = req.body;
-  
+
       // Validate required fields
       if (!hubId || !hubName) {
         return res.status(400).json({
@@ -508,7 +540,7 @@ async getFoodItemsUnBlocks(req, res) {
           message: 'hubId and hubName are required fields'
         });
       }
-  
+
       // Find the food item
       const foodItem = await AddRestaurants.findById(productId);
       if (!foodItem) {
@@ -517,19 +549,19 @@ async getFoodItemsUnBlocks(req, res) {
           message: 'Food item not found'
         });
       }
-  
+
       // Check if location already exists
       const existingLocation = foodItem.locationPrice.find(
         location => location.hubId === hubId
       );
-  
+
       if (existingLocation) {
         return res.status(400).json({
           success: false,
           message: 'Location price already exists for this hub'
         });
       }
-  
+
       // Add new location price
       const newLocationPrice = {
         hubId,
@@ -540,18 +572,18 @@ async getFoodItemsUnBlocks(req, res) {
         Remainingstock: Remainingstock || 0,
         Priority: Priority || 0,
         offerprice: offerprice || 0,
-        basePrice:basePrice||0
+        basePrice: basePrice || 0
       };
-  
+
       foodItem.locationPrice.push(newLocationPrice);
       await foodItem.save();
-  
+
       res.status(201).json({
         success: true,
         message: 'Location price added successfully',
         data: newLocationPrice
       });
-  
+
     } catch (error) {
       console.error('Error adding location price:', error);
       res.status(500).json({
@@ -561,7 +593,7 @@ async getFoodItemsUnBlocks(req, res) {
       });
     }
   }
-  async getProductHubPrudctByUsing(req,res){
+  async getProductHubPrudctByUsing(req, res) {
     const { productId } = req.params;
 
     const foodItem = await AddRestaurants.findById(productId);
@@ -578,7 +610,7 @@ async getFoodItemsUnBlocks(req, res) {
       data: foodItem.locationPrice
     });
 
-  } catch (error) {
+  } catch(error) {
     console.error('Error fetching location prices:', error);
     res.status(500).json({
       success: false,
@@ -587,10 +619,10 @@ async getFoodItemsUnBlocks(req, res) {
     });
   }
 
-  async getProductByHubId(req,res){
+  async getProductByHubId(req, res) {
     try {
       const { productId, hubId } = req.params;
-  
+
       const foodItem = await AddRestaurants.findById(productId);
       if (!foodItem) {
         return res.status(404).json({
@@ -598,24 +630,24 @@ async getFoodItemsUnBlocks(req, res) {
           message: 'Food item not found'
         });
       }
-  
+
       const locationPrice = foodItem.locationPrice.find(
         location => location.hubId === hubId
       );
-  
+
       if (!locationPrice) {
         return res.status(404).json({
           success: false,
           message: 'Location price not found for this hub'
         });
       }
-  
+
       res.status(200).json({
         success: true,
         message: 'Location price retrieved successfully',
         data: locationPrice
       });
-  
+
     } catch (error) {
       console.error('Error fetching location price:', error);
       res.status(500).json({
@@ -625,99 +657,99 @@ async getFoodItemsUnBlocks(req, res) {
       });
     }
   }
-async updatepruducthub(req,res){
-  try {
-    const { productId, hubId } = req.params;
-    const updateData = req.body;
+  async updatepruducthub(req, res) {
+    try {
+      const { productId, hubId } = req.params;
+      const updateData = req.body;
 
-    const foodItem = await AddRestaurants.findById(productId);
-    if (!foodItem) {
-      return res.status(404).json({
-        success: false,
-        message: 'Food item not found'
-      });
-    }
-
-    const locationIndex = foodItem.locationPrice.findIndex(
-      location => location.hubId === hubId
-    );
-
-    if (locationIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: 'Location price not found for this hub'
-      });
-    }
-
-    // Update the location price with new data
-    const currentLocation = foodItem.locationPrice[locationIndex];
-    
-    // Update only provided fields
-    Object.keys(updateData).forEach(key => {
-      if (updateData[key] !== undefined) {
-        currentLocation[key] = updateData[key];
+      const foodItem = await AddRestaurants.findById(productId);
+      if (!foodItem) {
+        return res.status(404).json({
+          success: false,
+          message: 'Food item not found'
+        });
       }
-    });
 
-    await foodItem.save();
+      const locationIndex = foodItem.locationPrice.findIndex(
+        location => location.hubId === hubId
+      );
 
-    res.status(200).json({
-      success: true,
-      message: 'Location price updated successfully',
-      data: currentLocation
-    });
+      if (locationIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Location price not found for this hub'
+        });
+      }
 
-  } catch (error) {
-    console.error('Error updating location price:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
-  }
-}
+      // Update the location price with new data
+      const currentLocation = foodItem.locationPrice[locationIndex];
 
-async deleteHubPruduct(req,res){
-  try {
-    const { productId, hubId } = req.params;
+      // Update only provided fields
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key] !== undefined) {
+          currentLocation[key] = updateData[key];
+        }
+      });
 
-    const foodItem = await AddRestaurants.findById(productId);
-    if (!foodItem) {
-      return res.status(404).json({
+      await foodItem.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Location price updated successfully',
+        data: currentLocation
+      });
+
+    } catch (error) {
+      console.error('Error updating location price:', error);
+      res.status(500).json({
         success: false,
-        message: 'Food item not found'
+        message: 'Internal server error',
+        error: error.message
       });
     }
+  }
 
-    const locationIndex = foodItem.locationPrice.findIndex(
-      location => location.hubId === hubId
-    );
+  async deleteHubPruduct(req, res) {
+    try {
+      const { productId, hubId } = req.params;
 
-    if (locationIndex === -1) {
-      return res.status(404).json({
+      const foodItem = await AddRestaurants.findById(productId);
+      if (!foodItem) {
+        return res.status(404).json({
+          success: false,
+          message: 'Food item not found'
+        });
+      }
+
+      const locationIndex = foodItem.locationPrice.findIndex(
+        location => location.hubId === hubId
+      );
+
+      if (locationIndex === -1) {
+        return res.status(404).json({
+          success: false,
+          message: 'Location price not found for this hub'
+        });
+      }
+
+      // Remove the location price
+      foodItem.locationPrice.splice(locationIndex, 1);
+      await foodItem.save();
+
+      res.status(200).json({
+        success: true,
+        message: 'Location price deleted successfully'
+      });
+
+    } catch (error) {
+      console.error('Error deleting location price:', error);
+      res.status(500).json({
         success: false,
-        message: 'Location price not found for this hub'
+        message: 'Internal server error',
+        error: error.message
       });
     }
-
-    // Remove the location price
-    foodItem.locationPrice.splice(locationIndex, 1);
-    await foodItem.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Location price deleted successfully'
-    });
-
-  } catch (error) {
-    console.error('Error deleting location price:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-      error: error.message
-    });
   }
-}
 
 }
 

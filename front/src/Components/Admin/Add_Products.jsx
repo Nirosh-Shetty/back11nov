@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Button, Modal, Table, Image, Form, Spinner } from "react-bootstrap";
+import Autocomplete from '@mui/material/Autocomplete';
+import TextField from '@mui/material/TextField';
 import { AiFillDelete } from "react-icons/ai";
 import { BiSolidEdit } from "react-icons/bi";
 import { BsSearch } from "react-icons/bs";
 import axios from "axios";
 import moment from "moment";
 import ImportExcel from "./ImportExcel";
+import TagsManager from './TagsManager';
 import * as XLSX from "xlsx";
 import DownloadIcon from "@mui/icons-material/Download";
 import ReactPaginate from "react-paginate";
@@ -18,6 +21,7 @@ const Add_Products = () => {
   const [show1, setShow1] = useState(false);
   const [show, setShow] = useState(false);
   const [show2, setShow2] = useState(false);
+  const [showTagsManager, setShowTagsManager] = useState(false);
 
   // Loading states
   const [isLoading, setIsLoading] = useState(false);
@@ -87,6 +91,8 @@ const Add_Products = () => {
   const [gstlist, setGstList] = useState([]);
   const [searchTerm, setSearchH] = useState("");
   const [categoryName, setCategoryName] = useState([]);
+  const [tagsList, setTagsList] = useState([]);
+  const [selectedTags, setSelectedTags] = useState([]);
   const [menu, setMenu] = useState([]);
   const [menuCategory, setMenuCategory] = useState("");
 
@@ -154,6 +160,16 @@ const Add_Products = () => {
     }
   };
 
+  // Get Tags
+  const getTags = async () => {
+    try {
+      const res = await axios.get("http://localhost:7013/api/admin/food-tags");
+      if (res.status === 200) setTagsList(res.data.data || []);
+    } catch (error) {
+      console.error('Error fetching tags', error);
+    }
+  };
+
   // Add product
   const Addproductdetails = async () => {
     try {
@@ -193,6 +209,9 @@ const Add_Products = () => {
       formdata.append("unit", Unit);
       formdata.append("quantity", Quantity);
       formdata.append("fooddescription", ProductDesc);
+      if (selectedTags && selectedTags.length > 0) {
+        formdata.append('foodTags', JSON.stringify(selectedTags));
+      }
       formdata.append("aggregatedPrice", aggregatedPrice);
 
       setIsLoading(true);
@@ -220,6 +239,7 @@ const Add_Products = () => {
         setUnit("");
         setQuantity("");
         setProductDesc("");
+        setSelectedTags([]);
       }
     } catch (error) {
       console.log(error);
@@ -291,6 +311,9 @@ const Add_Products = () => {
       formdata.append("fooddescription", ProductDesc);
       formdata.append("aggregatedPrice", aggregatedPrice);
       formdata.append("userid", id);
+      if (selectedTags && selectedTags.length > 0) {
+        formdata.append('foodTags', JSON.stringify(selectedTags));
+      }
 
       setIsLoading(true);
       const config = {
@@ -307,6 +330,7 @@ const Add_Products = () => {
         handleClose4();
         await getAddproducts();
         setProductImage("");
+        setSelectedTags([]);
       }
     } catch (error) {
       console.log(error);
@@ -383,13 +407,23 @@ const Add_Products = () => {
     getAddproducts();
     getGst();
     fetchCategories();
+    getTags();
     fetchMenuCategories();
   }, []);
+
+  // when opening edit modal, if Data1 has foodTags, preselect them
+  useEffect(() => {
+    if (Data1 && Data1.foodTags) {
+      // Data1.foodTags might be populated objects or ids
+      const arr = Data1.foodTags.map(ft => typeof ft === 'object' ? String(ft._id) : String(ft));
+      setSelectedTags(arr);
+    }
+  }, [Data1]);
 
   useEffect(() => {
     setTotalAmount(
       Number(ProductPrice) +
-        (Number(GST?.TotalGst || 0) / 100) * Number(ProductPrice)
+      (Number(GST?.TotalGst || 0) / 100) * Number(ProductPrice)
     );
   }, [ProductPrice, GST]);
 
@@ -515,6 +549,7 @@ const Add_Products = () => {
           <Button variant="success" onClick={handleShow3}>
             + ADD
           </Button>
+          <Button variant="outline-secondary" onClick={() => setShowTagsManager(true)}>Manage Tags</Button>
         </div>
 
         <div className="mb-3">
@@ -541,6 +576,7 @@ const Add_Products = () => {
                     <th>Type</th>
 
                     <th>Name</th>
+                    <th>Tags</th>
                     <th>Image</th>
                     <th>Unit</th>
                     <th>Description</th>
@@ -582,6 +618,15 @@ const Add_Products = () => {
                         {items.foodcategory}
                       </td>
                       <td style={{ paddingTop: "20px" }}>{items?.foodname}</td>
+                      <td style={{ paddingTop: "20px" }}>
+                        {items?.foodTags && items.foodTags.length > 0 ? (
+                          items.foodTags.map((t, idx) => (
+                            <span key={idx} style={{ display: 'inline-block', marginRight: 6, padding: '2px 6px', background: t.tagColor || '#eee', borderRadius: 6 }}>{t.tagName || t}</span>
+                          ))
+                        ) : (
+                          <span>—</span>
+                        )}
+                      </td>
                       <td style={{ paddingTop: "20px" }}>
                         <div>
                           <img
@@ -730,6 +775,41 @@ const Add_Products = () => {
             </div>
             <div className="row">
               <div className="do-sear mt-2">
+                <label>Tags</label>
+                <Autocomplete
+                  multiple
+                  options={tagsList}
+                  getOptionLabel={(option) => option.tagName}
+                  value={tagsList.filter(tag => selectedTags.includes(String(tag._id)))}
+                  onChange={(event, value) => setSelectedTags(value.map(tag => String(tag._id)))}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <span
+                        key={option._id}
+                        style={{
+                          background: option.tagColor || '#007bff',
+                          color: '#fff',
+                          borderRadius: '16px',
+                          padding: '4px 10px',
+                          marginRight: '6px',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          display: 'inline-block'
+                        }}
+                        {...getTagProps({ index })}
+                      >
+                        {option.tagName}
+                      </span>
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} variant="outlined" placeholder="Select tags" />
+                  )}
+                />
+              </div>
+            </div>
+            <div className="row">
+              <div className="do-sear mt-2">
                 <label> Food Name</label>
                 <input
                   type="text"
@@ -872,6 +952,15 @@ const Add_Products = () => {
               </Button>
             </div>
           </Modal.Footer>
+        </Modal>
+
+        <Modal show={showTagsManager} onHide={() => setShowTagsManager(false)} size="lg">
+          <Modal.Header closeButton>
+            <Modal.Title>Manage Food Tags</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <TagsManager />
+          </Modal.Body>
         </Modal>
 
         {/* Edit modal for Products */}
@@ -1035,6 +1124,41 @@ const Add_Products = () => {
                   value={ProductDesc}
                   placeholder={Data1?.fooddescription}
                   onChange={(e) => setProductDesc(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="row">
+              <div className="do-sear mt-2">
+                <label>Tags</label>
+                <Autocomplete
+                  multiple
+                  options={tagsList}
+                  getOptionLabel={(option) => option.tagName}
+                  value={tagsList.filter(tag => selectedTags.includes(String(tag._id)))}
+                  onChange={(event, value) => setSelectedTags(value.map(tag => String(tag._id)))}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <span
+                        key={option._id}
+                        style={{
+                          background: option.tagColor || '#007bff',
+                          color: '#fff',
+                          borderRadius: '16px',
+                          padding: '4px 10px',
+                          marginRight: '6px',
+                          fontSize: '13px',
+                          fontWeight: 500,
+                          display: 'inline-block'
+                        }}
+                        {...getTagProps({ index })}
+                      >
+                        {option.tagName}
+                      </span>
+                    ))
+                  }
+                  renderInput={(params) => (
+                    <TextField {...params} variant="outlined" placeholder="Select tags" />
+                  )}
                 />
               </div>
             </div>
