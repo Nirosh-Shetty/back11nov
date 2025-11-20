@@ -40,7 +40,7 @@ const TagsManager = () => {
     };
 
     const deleteTag = async (id) => {
-        if (!confirm('Delete this tag?')) return;
+        // if (!confirm('Delete this tag?')) return;
         try { await axios.delete(`http://localhost:7013/api/admin/food-tags/${id}`); load(); } catch (e) { alert('Error deleting'); }
     };
 

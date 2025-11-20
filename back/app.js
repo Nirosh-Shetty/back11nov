@@ -112,8 +112,7 @@ app.use("/api/admin/referral-settings", referralSettingsRoutes);
 app.use('/api/admin', CategoryRoutes)
 app.use("/api/admin/hub-menu", hubMenuRoutes);
 app.use('/api/admin/menuCategory', MenuCategoryRoutes)
-
-
+app.use('/api/admin/', FoodTagsRoutes);
 
 
 
