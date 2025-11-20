@@ -328,7 +328,7 @@ function MultipleInvoice() {
                             border: "0.5px solid #555",
                           }}
                         >
-                          {items?.name || "-"}
+                          {items?.foodItemId?.foodname || items?.name}
                         </td>
                         <td
                           style={{

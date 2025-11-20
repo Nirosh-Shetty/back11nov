@@ -15,9 +15,7 @@ const Footer = () => {
   const [Addsocial, setAddsocial] = useState([]);
   const getAddsocial = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getsocial"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getsocial");
       if (res.status === 200) {
         setAddsocial(res.data.getsocial);
       }
@@ -105,7 +103,11 @@ const Footer = () => {
                         <div className="row" key={i}>
                           <a href={items.CLink}>
                             <img
+<<<<<<< HEAD
                               src={`http://localhost:7013/Socialmedia/${items?.CIcon}`}
+=======
+                              src={http://localhost:7013/Socialmedia/${items?.CIcon}`}
+>>>>>>> fa6a4b781c4d232c73b640ae22091fa9def85f47
                               alt="social-icon"
                               style={{ width: "55px", height: "55px" }}
                             />

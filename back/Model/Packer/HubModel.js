@@ -4,6 +4,10 @@ const hubSchema = new mongoose.Schema({
   hubId: { type: String, unique: true },
   hubName: { type: String, required: true, unique: true },
   locations: [{ type: String, required: true }],
+  geometry: {
+    type: mongoose.Schema.Types.Mixed, // Store GeoJSON Feature format
+    default: null
+  },
   createdAt: { type: Date, default: Date.now }
 });
 

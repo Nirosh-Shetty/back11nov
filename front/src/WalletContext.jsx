@@ -11,7 +11,7 @@ export const WalletProvider = ({ children }) => {
 
   useEffect(() => {
     fetchWalletData();
-    AdminWallet(); 
+    AdminWallet();
   }, []);
 
   const fetchWalletData = async () => {
@@ -43,9 +43,7 @@ export const WalletProvider = ({ children }) => {
   const [AllWallet, setAllWallet] = useState([]);
   const AdminWallet = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:7013/api/wallet/all"
-      );
+      const response = await axios.get("http://localhost:7013/api/wallet/all");
       setAllWallet(response.data.success);
     } catch (error) {
       console.error("Error fetching wallets:", error);

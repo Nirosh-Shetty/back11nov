@@ -177,6 +177,17 @@ const ProfileOffcanvas = ({ show, handleClose }) => {
                     text='My Profile'
                     onClick={() => handleLinkClick('/profile')}
                   /> */}
+                  <NavItem
+                    icon={
+                      <img
+                        src="/Assets/selectlocation.svg"
+                        alt="Profile"
+                        className="icon-img-l"
+                      />
+                    }
+                    text="My Addresses"
+                    onClick={() => handleLinkClick("/addresses")}
+                  />
                    <NavItem
                 icon={
                   <img

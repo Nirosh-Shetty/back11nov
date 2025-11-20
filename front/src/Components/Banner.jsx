@@ -1,26 +1,26 @@
-import { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useEffect, useMemo, useContext, useRef } from "react";
 import "../Styles/Banner.css";
 
-import { Button, Modal, Form, InputGroup } from "react-bootstrap";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { Button, Modal, Form, Dropdown, InputGroup } from "react-bootstrap";
+import { FaUser, FaEye, FaEyeSlash, FaWallet } from "react-icons/fa";
 
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
-// import TextField from "@mui/material/TextField";
-// import Autocomplete from "@mui/material/Autocomplete";
+import { useNavigate, useLocation } from "react-router-dom";
+import TextField from "@mui/material/TextField";
+import Autocomplete from "@mui/material/Autocomplete";
 import ApartmentIcon from "@mui/icons-material/Apartment"; // Icon to represent apartments
-import { toast } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-// import Nav from "react-bootstrap/Nav";
-// import { MdAccountCircle } from "react-icons/md";
-// import { MdOutlineLogout } from "react-icons/md";
+import Nav from "react-bootstrap/Nav";
+import { MdAccountCircle } from "react-icons/md";
+import { MdOutlineLogout } from "react-icons/md";
 import { FaLock } from "react-icons/fa";
-// import { BiMessageDetail } from "react-icons/bi";
-// import { IoLogoYoutube, IoSearchCircleOutline } from "react-icons/io5";
-// import { ImSpoonKnife } from "react-icons/im";
-// import Offcanvas from "react-bootstrap/Offcanvas";
-// import { IoMdHeart } from "react-icons/io";
-// import { GrDocumentUser } from "react-icons/gr";
+import { BiMessageDetail } from "react-icons/bi";
+import { IoLogoYoutube, IoSearchCircleOutline } from "react-icons/io5";
+import { ImSpoonKnife } from "react-icons/im";
+import Offcanvas from "react-bootstrap/Offcanvas";
+import { IoMdHeart } from "react-icons/io";
+import { GrDocumentUser } from "react-icons/gr";
 import Swal2 from "sweetalert2";
 import swal from "sweetalert";
 
@@ -31,22 +31,22 @@ import Selectlocation from "../assets/selectlocation.svg";
 import UserIcons from "../assets/userp.svg";
 
 import SearchIcon from "../assets/search.svg";
-// import Logo from "../assets/logo-container.svg";
+import Logo from "../assets/logo-container.svg";
 import UserBanner from "./UserBanner";
 import ProfileOffcanvas from "./Navbar2";
-const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
+import LocationModal from "./LocationModal";
+import LocationModal2 from "./LocationModal2";
+
+// const Banner = ({ Carts, getAllOffer, hubName, setHubName }) => {
+const Banner = ({ Carts, getAllOffer }) => {
   const addresstype = localStorage.getItem("addresstype");
   const corporateaddress = JSON.parse(localStorage.getItem("coporateaddress"));
-
   const user = JSON.parse(localStorage.getItem("user"));
 
   const navigate = useNavigate("");
-  const [Fname, setFname] = useState("");
-  const [Address, setAddress] = useState("");
-  const [Flatno, setFlatno] = useState("");
   const [OTP, setOTP] = useState(["", "", "", ""]);
   const [PasswordShow, setPasswordShow] = useState(false);
-  //Address save modal
+
   const { wallet, walletSeting, rateorder, rateMode } =
     useContext(WalletContext);
   const [show, setShow] = useState(false);
@@ -70,13 +70,19 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
   const handleClose4 = () => setShow4(false);
 
   const [show5, setShow5] = useState(false);
-
   const handleClose5 = () => setShow5(false);
   const handleShow5 = () => setShow5(true);
+
   const [show7, setShow7] = useState(false);
   const handleClose7 = () => setShow7(false);
   const handleShow7 = () => setShow7(true);
   const [Mobile, setMobile] = useState("");
+
+  const [addresses, setAddresses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({});
+
   const userLogin = async () => {
     if (!Mobile) {
       return Swal2.fire({
@@ -98,7 +104,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
         url: "/User/Sendotp",
         method: "post",
         baseURL: "http://localhost:7013/api",
-
         headers: { "content-type": "application/json" },
         data: {
           Mobile: Mobile,
@@ -135,7 +140,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
             title: "me-small-toast-title",
           },
         });
-        alert("Error sending OTP");
       }
       if (res.status === 200) {
         handleClose3();
@@ -155,20 +159,17 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
           title: "me-small-toast-title",
         },
       });
-      // console.log("error", error.message);
     }
   };
 
   const [show8, setShow8] = useState(false);
-
   const handleClose8 = () => setShow8(false);
   const handleShow8 = () => setShow8(true);
 
   const handleShowCart = () => setShowCart(true);
 
-  const phoneNumber = "7204188504"; // Replace with your WhatsApp number
-  const message = "Hello! I need assistance."; // Default message
-
+  const phoneNumber = "7204188504";
+  const message = "Hello! I need assistance.";
   const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(
     message
   )}`;
@@ -184,7 +185,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
       window.location.assign("/");
     }, 5000);
     localStorage.clear();
-    // localStorage.removeItem("user");
   };
 
   const [apartmentdata, setapartmentdata] = useState([]);
@@ -202,6 +202,7 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
   useEffect(() => {
     getapartmentd();
   }, []);
+
   const [corporatedata, setcorporatedata] = useState([]);
   const getcorporate = async () => {
     try {
@@ -233,6 +234,7 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
     };
     getAddWebstory();
   }, []);
+
   const address = JSON.parse(
     localStorage.getItem(
       addresstype === "apartment" ? "address" : "coporateaddress"
@@ -240,12 +242,10 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
   );
 
   const Handeledata = (ab, def) => {
-    // toast.success("Request Submitted Successfully.");
     try {
       if (ab) {
         if (!user) return navigate("/", { replace: true });
         let data = JSON.parse(ab);
-        // console.log("data=====>",data);
         const addressData = {
           Address: data?.Address,
           Delivarycharge: data?.apartmentdelivaryprice,
@@ -262,7 +262,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
           dinnerSlots: data?.dinnerSlots ? data?.dinnerSlots : [],
           deliverypoint: data?.deliverypoint ? data?.deliverypoint : "",
           locationType: data?.locationType || "",
-          hubId:data?.hubId || "",
         };
         if (!def) {
           saveSelectedAddress(data);
@@ -270,16 +269,9 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
 
         if (addresstype === "apartment") {
           localStorage.setItem("address", JSON.stringify(addressData));
-          // setAddress1(data);
         } else {
           localStorage.setItem("coporateaddress", JSON.stringify(addressData));
         }
-
-        // Convert addressData to JSON string and store in localStorage
-
-        setSelectArea(JSON.stringify(addressData));
-        // window.location.reload();
-        // getAllOffer()
       }
     } catch (error) {
       // console.log(error);
@@ -293,10 +285,7 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
   const [Message, setMessage] = useState("");
 
   function validateIndianMobileNumber(mobileNumber) {
-    // Regex to validate Indian mobile number
     const regex = /^[6-9]\d{9}$/;
-
-    // Test the mobile number against the regex
     return regex.test(mobileNumber);
   }
 
@@ -305,7 +294,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
       if (!Name) {
         return alert("Please Add Your Name");
       }
-
       if (!Number) {
         return alert("Please Add Your Contact Number");
       }
@@ -315,7 +303,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
       if (!Message) {
         return alert("Please Add Your Address");
       }
-
       if (!validateIndianMobileNumber(Number)) {
         return Swal2.fire({
           toast: true,
@@ -345,63 +332,17 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
       };
       const res = await axios(config);
       if (res.status === 200) {
-        // alert("Location Add Request Sent. We'll Update You Soon..!");
         toast.success("Request Submitted Successfully.");
         handleClose2();
         setName("");
         setNumber("");
         setApartmentName("");
         setMessage("");
-        // navigate("/home")
-        // window.location.reload();
       }
     } catch (error) {
       // console.log(error);
     }
   };
-
-  // const currentTime = new Date();
-  // const currentMinutes = currentTime.getHours() * 60 + currentTime.getMinutes(); // Convert time to minutes since midnight
-
-  // // Define time slots in minutes
-  // const openTime = 7 * 60; // 8:00 AM
-  // const lunchMenuEnd = 13 * 60 + 30; // 01:30 PM
-  // const lunchDeliveryEnd = 16 * 60; // 4:00 PM
-  // const dinnerMenuStart = 14 * 60; // 3:00 PM
-  // const dinnerMenuEnd = 22 * 60; // 10:00 PM
-  // const closeTime = 22 * 60; // 11:00 PM
-  // const shopCloseTime = 22 * 60; // 10:00 PM
-  // // Determine which message or menu to show
-  // let displayMessage = "";
-  // let timeShow = "";
-
-  // if (currentMinutes >= closeTime || currentMinutes < openTime) {
-  //   // Before 8:00 AM or after 11:00 PM
-  //   displayMessage = "Currently, we are closed";
-  //   timeShow = "Ordering resumes at 07:00 AM.";
-  // } else if (currentMinutes >= openTime && currentMinutes <= lunchMenuEnd) {
-  //   // Between 8:00 AM and 12:30 PM
-  //   displayMessage = "Ordering Lunch";
-  //   timeShow = "07:00 AM to 02:00 PM";
-  // } else if (
-  //   currentMinutes > lunchMenuEnd &&
-  //   currentMinutes < dinnerMenuStart
-  // ) {
-  //   // Between 12:30 PM and 3:00 PM
-  //   displayMessage = "Ordering Lunch";
-  //   timeShow = "Dinner ordering starts at 02:00 PM.";
-  // } else if (
-  //   currentMinutes >= dinnerMenuStart &&
-  //   currentMinutes <= dinnerMenuEnd
-  // ) {
-  //   // Between 3:00 PM and 8:30 PM
-  //   displayMessage = "Ordering Dinner";
-  //   timeShow = "02:00 PM to 09:00 PM";
-  // } else {
-  //   // Between 8:30 PM and 11:00 PM
-  //   displayMessage = "Currently, we are closed";
-  //   timeShow = "Ordering resumes at 07:00 AM.";
-  // }
 
   const verifyOTP = async () => {
     try {
@@ -419,7 +360,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
             title: "me-small-toast-title",
           },
         });
-        // return alert("Enter a valid OTP");
       }
       const config = {
         url: "User/mobileotpverification",
@@ -433,10 +373,8 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
       };
       const res = await axios(config);
       if (res.status === 200) {
-        // setadmindata(res.data.success);
         localStorage.setItem("user", JSON.stringify(res.data.details));
         sessionStorage.setItem("user", JSON.stringify(res.data.details));
-        // alert("OTP verified successfully");
         Swal2.fire({
           toast: true,
           position: "bottom",
@@ -453,7 +391,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
         window.location.reload();
       }
     } catch (error) {
-      // console.log(error);
       Swal2.fire({
         toast: true,
         position: "bottom",
@@ -467,7 +404,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
           title: "me-small-toast-title",
         },
       });
-      // alert(error.response.data.error);
     }
   };
 
@@ -480,8 +416,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
       );
       if (res.status === 200) {
         setSelectedAddress(res.data.getdata);
-
-        // console.log("Selected Address",res.data.getdata);
       }
     } catch (error) {
       // console.log(error);
@@ -532,263 +466,255 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
 
   const inputRef = useRef(null);
   const [open, setOpen] = useState(false);
-
-  // const user = JSON.parse(localStorage.getItem("user"));
-
   const [searchValue, setSearchValue] = useState("");
 
-  const [showselectlocation, setShowselectlocation] = useState(false);
-  useEffect(() => {
-    if (corporateaddress?.apartmentname || address?.apartmentname) {
-      setShowselectlocation(false);
-    } else {
-      setShowselectlocation(true);
+  // Get customer ID from localStorage
+  const getCustomerId = () => {
+    return user?._id;
+  };
+
+  // Get auth headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return {
+      "Content-Type": "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+  };
+
+  const [userData, setUserData] = useState([]);
+  const [alert, setAlert] = useState({ show: false, message: "", type: "" });
+
+  const showAlert = (message, type) => {
+    setAlert({ show: true, message, type });
+    setTimeout(() => setAlert({ show: false, message: "", type: "" }), 3000);
+  };
+
+  const [primaryAddressId, setPrimaryAddressId] = useState(null);
+  const [primaryAddress, setPrimaryAddress] = useState(null);
+
+  // 1. Wrap fetchAddresses in useCallback to keep the function stable
+  const fetchAddresses = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const customerId = user?._id; // Safe access
+
+      if (!customerId) {
+        // Don't throw error here, just return, allows for smoother logout/no-user state
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:7013/api/User/customers/${customerId}/addresses`,
+        {
+          method: "GET",
+          headers: getAuthHeaders(),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch addresses");
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        const addresses = result.addresses || [];
+        setAddresses(addresses);
+        setPrimaryAddressId(result.primaryAddress || null);
+
+        const primaryAddr = addresses.find(
+          (addr) => addr._id === result.primaryAddress
+        );
+        setPrimaryAddress(primaryAddr || null);
+        // if (primaryAddr) {
+        //         localStorage.setItem("primaryAddress", JSON.stringify(primaryAddr));
+        //     }
+        //      else {
+        //         localStorage.removeItem("primaryAddress"); // Clean up if no primary exists
+        //     }
+
+        if (addresses && addresses.length > 0) {
+          const firstType = addresses[0].addressType;
+          setExpandedSections({ [firstType]: true });
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [corporateaddress?.apartmentname, address?.apartmentname]);
+  }, [user?._id]); // Re-create function only if ID changes
+
+  // 2. Update the useEffect to depend on user._id (or the memoized function)
+  useEffect(() => {
+    if (user?._id) {
+      fetchAddresses();
+    }
+  }, [fetchAddresses]);
+
+  // ... existing code ...
+
+  // Handle location click - show toast and redirect if not logged in
+  const handleLocationClick = () => {
+    if (!user) {
+      Swal2.fire({
+        toast: true,
+        position: "bottom",
+        icon: "info",
+        title: `Please login!`,
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        customClass: {
+          popup: "me-small-toast",
+          title: "me-small-toast-title",
+        },
+      });
+      setTimeout(() => {
+        navigate("/", { replace: true });
+      }, 1000);
+      return;
+    }
+    // If user is logged in, open location modal
+    setShowLocationModal(true);
+  };
+
+  const [currentLocation, setCurrentLocation] = useState(null);
+
+  // ✅ Load from localStorage on component mount
+  useEffect(() => {
+    const savedLocation = localStorage.getItem("currentLocation");
+    if (savedLocation) {
+      try {
+        setCurrentLocation(JSON.parse(savedLocation));
+      } catch (e) {
+        console.error("Invalid JSON in localStorage:", e);
+      }
+    }
+  }, []);
+
+  // ✅ Save to localStorage when currentLocation changes
+  useEffect(() => {
+    if (currentLocation) {
+      localStorage.setItem("currentLocation", JSON.stringify(currentLocation));
+    }
+  }, [currentLocation]);
+
+  // Set hubName when addresses are loaded
+  // ✅ Set hubName from primaryAddress or currentLocation
+  // useEffect(() => {
+  //   if (setHubName) {
+  //     if (primaryAddress?.hubName) {
+  //       // Use hubName from primaryAddress if available
+  //       setHubName(primaryAddress.hubName
+  // );
+  //     } else if (currentLocation?.hubName) {
+  //       // Fall back to hubName from currentLocation
+  //       setHubName(currentLocation.hubName);
+  //     }
+  //     // If neither has hubName, don't set anything (or set to empty string if needed)
+  //   }
+  // }, [primaryAddress, currentLocation, setHubName]);
+
+  // Get display name for address
+  const getDisplayName = (address) => {
+    if (!address) return "";
+
+    switch (address.addressType) {
+      case "Home":
+        return address.homeName || address.houseName || "";
+      case "PG":
+        return address.apartmentName || address.houseName || "";
+      case "School":
+        return address.schoolName || address.houseName || "";
+      case "Work":
+        return address.companyName || address.houseName || "";
+      default:
+        return address.houseName || "";
+    }
+  };
+
+  // Get display address text
+  const getDisplayAddress = () => {
+    // Priority 1: Primary address (selected by user)
+    if (primaryAddress) {
+      return getDisplayName(primaryAddress);
+    }
+
+    // Priority 2: Current location (temporary selection)
+    if (currentLocation?.fullAddress) {
+      return currentLocation.fullAddress;
+    }
+
+    // Priority 3: Any saved address (fallback)
+    if (addresses.length > 0) {
+      return getDisplayName(addresses[0]);
+    }
+
+    // Default fallback
+    return "Select Location";
+  };
 
   return (
     <div>
       <div className="ban-container">
-        {/* <ToastContainer /> */}
-
         <div className="mobile-banner-updated">
           <div className="screen-2 mb-3">
-            {/* <div className="d-flex justify-content-between ">
-            <div className="d-flex gap-3 profileCard">
-              <div
-             
-                className="profileSection"
-                onClick={handleShow8}
-              >
-                <FaUser className="mobile-user-screen2" />
-              </div>
-         
-              <div className="mobile-user-screen2-title ">
-                <div className="text-center">
-                  <h6>
-                    {displayMessage}
-                 
-                  </h6>
-                
-                  <p style={{ fontSize: "13px" }}>{timeShow}</p>
-                </div>
-              </div>
+            <div className="w-100">
+              <div className="d-flex flex-column align-items-start mt-2 gap-3">
+                <div
+                  className="d-flex align-items-center gap-2 w-100"
+                  onClick={handleLocationClick}
+                  style={{ cursor: "pointer" }}
+                >
+                  <img
+                    src={Selectlocation}
+                    alt="select-location"
+                    className="flex-shrink-0"
+                    style={{ width: "32px", height: "32px" }}
+                  />
 
-           
-              <div className="trustSection" onClick={handleShow5}>
-                <img
-                  src="/Assets/trustlogo.png"
-                  alt=""
-                  srcset=""
-                  className="blinking-red-border"
-                />
-              </div>
-            </div>
-          </div> */}
-            {showselectlocation ? (
-              <div className="w-100">
-                <div className="d-flex gap-2 align-items-center ">
-                  <img src={Selectlocation} alt="select-location" />
-                  <p className="select-location-text">Select Location</p>
-                </div>
-
-                <div className="locationselector mt-2">
-                  {addresstype === "corporate" ? (
-                    <div className="custom-autocomplete-wrapper">
-                      <div
-                        className="custom-autocomplete-input"
-                        onFocus={() => setOpen(!open)}
-                      >
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          value={searchValue}
-                          onChange={(e) => {
-                            setSearchValue(e.target.value);
-                            setOpen(true);
-                          }}
-                          onFocus={() => setOpen(true)}
-                          placeholder={
-                            corporateaddress?.apartmentname ||
-                            "Find delivery locations near me"
-                          }
-                          className="autocomplete-input-field"
-                        />
-
-                        {corporateaddress?.apartmentname && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              Handeledata(JSON.stringify({}));
-                              setSearchValue("");
-                            }}
-                            className="clear-button"
-                          >
-                            <span>×</span>
-                          </button>
-                        )}
-
-                        <img
-                          src={SearchIcon}
-                          alt="search-icon2"
-                          className="search-icon"
-                        />
-                      </div>
-
-                      {open && (
-                        <div className="custom-dropdown">
-                          {[...corporatedata]
-                            .filter((option) =>
-                              option?.Apartmentname.toLowerCase().includes(
-                                searchValue.toLowerCase()
-                              )
-                            )
-                            .sort((a, b) =>
-                              a?.Apartmentname.localeCompare(b?.Apartmentname)
-                            )
-                            .map((option) => (
-                              <div
-                                key={option.id}
-                                className="dropdown-option"
-                                onClick={() => {
-                                  Handeledata(JSON.stringify(option));
-                                  setSearchValue("");
-                                  setOpen(false);
-                                }}
-                              >
-                                <ApartmentIcon className="option-icon" />
-                                <span>{option?.Apartmentname}</span>
-                              </div>
-                            ))}
-                          {[...corporatedata].filter((option) =>
-                            option?.Apartmentname.toLowerCase().includes(
-                              searchValue.toLowerCase()
-                            )
-                          ).length === 0 && (
-                            <div className="no-options">
-                              No corporate locations found
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="custom-autocomplete-wrapper">
-                      <div
-                        className="custom-autocomplete-input"
-                        onFocus={() => setOpen(!open)}
-                      >
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          value={searchValue}
-                          onChange={(e) => {
-                            setSearchValue(e.target.value);
-                            setOpen(true);
-                          }}
-                          onFocus={() => setOpen(true)}
-                          placeholder={
-                            address?.apartmentname || "Select Pg/Apartment"
-                          }
-                          className="autocomplete-input-field"
-                        />
-
-                        {address?.apartmentname && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              Handeledata(JSON.stringify({}));
-                              setSearchValue("");
-                            }}
-                            className="clear-button"
-                          >
-                            <span>×</span>
-                          </button>
-                        )}
-
-                        <img
-                          src={SearchIcon}
-                          alt="search-icon1"
-                          className="search-icon"
-                        />
-                      </div>
-
-                      {open && (
-                        <div className="custom-dropdown">
-                          {[...apartmentdata]
-                            .filter((option) =>
-                              option?.Apartmentname.toLowerCase().includes(
-                                searchValue.toLowerCase()
-                              )
-                            )
-                            .sort((a, b) =>
-                              a.Apartmentname.localeCompare(b.Apartmentname)
-                            )
-                            .map((option) => (
-                              <div
-                                key={option.id}
-                                className="dropdown-option"
-                                onClick={() => {
-                                  Handeledata(JSON.stringify(option));
-                                  setSearchValue("");
-                                  setOpen(false);
-                                }}
-                              >
-                                <ApartmentIcon className="option-icon" />
-                                <span>{option?.Apartmentname}</span>
-                              </div>
-                            ))}
-                          {[...apartmentdata].filter((option) =>
-                            option?.Apartmentname.toLowerCase().includes(
-                              searchValue.toLowerCase()
-                            )
-                          ).length === 0 && (
-                            <div className="no-options">
-                              No apartments found
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div>
-                {/* <img src={Logo} alt="logo" className="custom-logo" /> */}
-                <div className="d-flex gap-2 align-items-center mt-2">
-                  <img src={Selectlocation} alt="select-location" />
-                  <div
-                    className="d-flex flex-column cursor-pointer user-details-banner"
-                    onClick={() => setShowselectlocation(true)}
-                  >
-                    <p className="select-location-text ">
-                      {corporateaddress?.apartmentname ||
-                        address?.apartmentname ||
-                        "Select Location"}
+                  <div className="d-flex flex-column cursor-pointer flex-grow-1">
+                    <p
+                      className="select-location-text fw-semibold text-truncate mb-0"
+                      style={{ maxWidth: "220px" }}
+                      title={getDisplayAddress()}
+                    >
+                      {getDisplayAddress()}
                     </p>
-                    <p className="select-location-text-small">
-                      {user?.Fname} | {user?.Mobile}
-                    </p>
+
+                    {user && (
+                      <p
+                        className="select-location-text-small mb-0"
+                        style={{
+                          color: "rgba(255, 255, 255, 0.8)",
+                        }}
+                      >
+                        {user?.Fname} | {user?.Mobile}
+                        {primaryAddress && ""}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+
             <div className="d-flex gap-1 justify-content-between align-items-center">
-            {user && ( // Only show if user is logged in
-              <button
-                className="refer-earn-btn"
-                onClick={() => navigate("/refer")}
-              >
-                <img
-                  src="/Assets/gifticon.svg"
-                  alt="refer"
-                  className="refer-icon"
-                />
-                <span className="refer-earn-text">Refer & Earn</span>
-              </button>
-            )}
-           
+              {user && ( // Only show if user is logged in
+                <button
+                  className="refer-earn-btn"
+                  onClick={() => navigate("/refer")}
+                >
+                  <img
+                    src="/Assets/gifticon.svg"
+                    alt="refer"
+                    className="refer-icon"
+                  />
+                  <span className="refer-earn-text">Refer & Earn</span>
+                </button>
+              )}
+
               <img
                 src={UserIcons}
                 alt="user-icon"
@@ -801,7 +727,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
           {!user && (
             <div className="benifits-container mb-3">
               <ul className="benifits-item">
-                {/* <img src={BenifitsIcon} alt="benifits-icon" /> */}
                 <li className="benifits-text">
                   ✨ Unlock more with an account:
                 </li>
@@ -821,25 +746,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
               </button>
             </div>
           )}
-
-          {/* {(!corporateaddress?.apartmentname && !address?.apartmentname && user) && <div
-          className="d-flex justify-content-center align-items-start mt-2"
-        >
-          <div style={{ width: "100%", maxWidth: "400px" }}>
-            <div
-              className="p-3 shadow-sm"
-              style={{
-                backgroundColor: "#6B8E23",
-                borderRadius: "15px",
-                cursor: "pointer",
-              }}
-              onClick={handleCardClick}
-            >
-              <h5 className="text-center text-white mb-0">
-                📍 Please select location
-              </h5>
-            </div>
-          </div></div>} */}
         </div>
 
         {/* Request Aprtment modal */}
@@ -903,79 +809,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
         </Modal>
         <ProfileOffcanvas show={show8} handleClose={handleClose8} />
 
-        {/* <Modal
-        show={show4}
-        backdrop="static"
-        onHide={handleClose4}
-        style={{ zIndex: "9999999" }}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Register Here</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Control
-              type="text"
-              placeholder="Enter Full Name"
-              style={{ marginTop: "18px" }}
-              value={Fname}
-              onChange={(e) => {
-                setFname(e.target.value);
-              }}
-            />
-
-            <Form.Control
-              type="number"
-              placeholder="Enter Phone Number"
-              style={{ marginTop: "18px" }}
-              value={Mobile}
-              onChange={(e) => setMobile(e.target.value)}
-            />
-            <Form.Control
-              type="text"
-              placeholder="Enter Flat No,Building Name"
-              style={{ marginTop: "18px" }}
-              value={Address}
-              onChange={(e) => setAddress(e.target.value)}
-            />
-            <Form.Control
-              type="text"
-              placeholder="Tower/Phase/Block"
-              style={{ marginTop: "18px" }}
-              value={Flatno}
-              onChange={(e) => setFlatno(e.target.value)}
-            />
-
-            <Button
-              variant=""
-              style={{
-                width: "100%",
-                marginTop: "24px",
-                backgroundColor: "#6B8E23",
-                color: "white",
-                textAlign: "center",
-              }}
-              onClick={handleRegister}
-            >
-              Register
-            </Button>
-          </Form>
-          <h6 className="text-center">Or</h6>
-          <Button
-            variant=""
-            style={{
-              width: "100%",
-              backgroundColor: "#6B8E23",
-              color: "white",
-              textAlign: "center",
-            }}
-            onClick={handleShow3}
-          >
-            Login
-          </Button>
-        </Modal.Body>
-      </Modal> */}
-
         <Modal show={show3} backdrop="static" onHide={handleClose3}>
           <Modal.Header closeButton>
             <Modal.Title className="d-flex align-items-center gap-1">
@@ -1022,7 +855,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
                   }
                   userLogin();
                 }}
-                // onClick={() => navigate("/checkout")}
               >
                 Send otp
               </Button>
@@ -1060,7 +892,6 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
                   className="login-input"
                   placeholder="Enter OTP"
                   aria-describedby="basic-addon1"
-                  // value={OTP}
                   onChange={(e) => setOTP(e.target.value)}
                 />
                 <Button
@@ -1111,6 +942,16 @@ const Banner = ({ selectArea, setSelectArea, Carts, getAllOffer }) => {
           <UserBanner />
         </div>
       </div>
+      <LocationModal2
+        show={showLocationModal}
+        onClose={() => {
+          setShowLocationModal(false);
+          // Refresh addresses when modal closes to get updated primary address
+          if (user) {
+            fetchAddresses();
+          }
+        }}
+      />
     </div>
   );
 };

@@ -17,6 +17,7 @@ import {
   FaProductHunt,
   FaWeightHanging,
   FaGift,
+  FaLocationArrow,
 } from "react-icons/fa";
 import { CiDiscount1 } from "react-icons/ci";
 import { MdProductionQuantityLimits } from "react-icons/md";
@@ -34,9 +35,7 @@ const Side = () => {
   const [AddApartment, setAddApartment] = useState([]);
   const getAddApartment = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getapartment"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getapartment");
       if (res.status === 200) {
         setAddApartment(res.data.corporatedata.reverse());
       }
@@ -70,9 +69,7 @@ const Side = () => {
   const [AddCorporate, setAddCorporate] = useState([]);
   const getAddCorporate = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getcorporate"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getcorporate");
       if (res.status === 200) {
         setAddCorporate(res.data.corporatedata.reverse());
       }
@@ -108,9 +105,7 @@ const Side = () => {
   const [Adduser, setAdduser] = useState([]);
   const getAdduser = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/User/registeruser"
-      );
+      let res = await axios.get("http://localhost:7013/api/User/registeruser");
       if (res.status === 200) {
         setAdduser(res.data.success.reverse());
       }
@@ -244,6 +239,14 @@ const Side = () => {
                   <span className="ms-2">Packer List </span>
                 </li>
               </Link>
+              <Link to="/order-assignment" onClick={handleNavCollapse}>
+                <li className="a-ele ">
+                  <span>
+                    <GoPackageDependents style={{ fontSize: "20px" }} />
+                  </span>
+                  <span className="ms-2">Delivery Assignment </span>
+                </li>
+              </Link>
               <Link
                 to="/packer-dashboard?user=Admin"
                 onClick={() => {
@@ -298,7 +301,7 @@ const Side = () => {
                   <span className="ms-2">Hub Menu Management</span>
                 </li>
               </Link>
-               <Link to="/admin/menu-upload" onClick={handleNavCollapse}>
+              <Link to="/admin/menu-upload" onClick={handleNavCollapse}>
                 <li className="a-ele ">
                   <span>
                     <FaProductHunt style={{ fontSize: "20px" }} />
@@ -361,7 +364,10 @@ const Side = () => {
                   </span>
                 </li>
               </Link>
-              <Link to="/corporate-booking-list-old" onClick={handleNavCollapse}>
+              <Link
+                to="/corporate-booking-list-old"
+                onClick={handleNavCollapse}
+              >
                 <li className="a-ele ">
                   <span>
                     <LuAlignHorizontalJustifyStart
@@ -376,7 +382,6 @@ const Side = () => {
                   </span>
                 </li>
               </Link>
-
               <Link to="/abandoned-cart" onClick={handleNavCollapse}>
                 <li className="a-ele ">
                   <span>
@@ -516,6 +521,15 @@ const Side = () => {
                     <FaWeightHanging style={{ fontSize: "20px" }} />
                   </span>
                   <span className="ms-2">Location Request </span>
+                </li>
+              </Link>
+
+              <Link to="/location-request" onClick={handleNavCollapse}>
+                <li className="a-ele ">
+                  <span>
+                    <FaLocationArrow style={{ fontSize: "20px" }} />
+                  </span>
+                  <span className="ms-2">Add Location Request </span>
                 </li>
               </Link>
 

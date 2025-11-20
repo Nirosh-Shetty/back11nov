@@ -15,14 +15,21 @@ app.use(express.static("Public"));
 
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
+const dbUri = process.env.DB;
+if (!dbUri) {
+  console.error("MongoDB connection string missing. Please set the DB variable in your .env file.");
+  process.exit(1);
+}
 mongoose
-  .connect(process.env.DB, {
+  .connect(dbUri, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then(() => console.log("DB is Connected"))
-  .catch(() => console.log("DB is not Connected"));
-
+  .catch((error) => {
+    console.error("DB is not Connected", error);
+    process.exit(1);
+  });
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -69,8 +76,12 @@ const BagRoutes = require('./Routes/Admin/Bag');
 const ReasonRoutes = require('./Routes/Admin/Reasons')
 const CategoryRoutes = require('./Routes/Admin/AdminCategory')
 const PackingRoutes = require('./Routes/Packer/Packing')
-const hubMenuRoutes = require("./Routes/Admin/HubMenu");
+const serviceRequestRoutes = require('./Routes/User/serviceRequestRoutes')
+const RiderRoutes = require('./Routes/Admin/Rider')
 
+
+const hubMenuRoutes = require("./Routes/Admin/HubMenu");
+const MenuCategoryRoutes = require("./Routes/Admin/MenuCategory");
 
 //Admin
 app.use("/api/admin", login);
@@ -93,13 +104,18 @@ app.use("/api/admin", CloseShop);
 app.use('/api/admin', offerRoutes);
 // app.use('/api/admin', bannerRoutes);
 app.use('/api/admin', reportRoutes);
-app.use('/api/Hub', HubRoute)
-app.use('/api/admin', BagRoutes)
-app.use('/api/admin', ReasonRoutes)
+app.use('/api/Hub',HubRoute)
+app.use('/api/admin',BagRoutes)
+app.use('/api/admin',ReasonRoutes)
+app.use('/api/admin',RiderRoutes)
 app.use("/api/admin/referral-settings", referralSettingsRoutes);
 app.use('/api/admin', CategoryRoutes)
 app.use("/api/admin/hub-menu", hubMenuRoutes);
-app.use('/api/admin', FoodTagsRoutes);
+app.use('/api/admin/menuCategory', MenuCategoryRoutes)
+
+
+
+
 
 //User
 app.use("/api/user", paymentRoute);
@@ -112,6 +128,8 @@ app.use("/api/cart", Addcart);
 app.use("/api/wallet", Wallet);
 app.use("/api/packer", PackerRoutes);
 app.use("/api/packer/packing", PackingRoutes);
+
+app.use('/api/service-requests', serviceRequestRoutes);
 
 
 

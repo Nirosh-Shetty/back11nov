@@ -218,9 +218,7 @@ const ProductDescription = ({ setHeaderUpdate, cartRemoveStatus }) => {
 
   const getCatrDeatils = () => {
     axios
-      .get(
-        "http://localhost:7013/api/addcart/getcart/" + user?._id
-      )
+      .get("http://localhost:7013/api/addcart/getcart/" + user?._id)
       .then(function (response) {
         setCarts(response.data.success);
         setCartstatus(response.data.success);

@@ -62,9 +62,7 @@ const HomeBanner = () => {
   const [AddBanner, setAddBanner] = useState([]);
   const getAddBanner = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getbanner"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getbanner");
       if (res.status === 200) {
         setAddBanner(res.data.getbanner);
       }

@@ -81,9 +81,7 @@ const BookingList = () => {
   const [Addproducts, setAddproducts] = useState([]);
   const getAddproducts = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getFoodItems"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getFoodItems");
       if (res.status === 200) {
         setAddproducts(res.data.data);
         setNoChangeData(res.data.data);

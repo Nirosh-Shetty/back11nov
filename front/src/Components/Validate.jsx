@@ -24,6 +24,8 @@ export default function Validate() {
   const [currentInputIndex, setCurrentInputIndex] = useState(0);
   const inputs = useRef([]);
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const handleVerify = useCallback(
     async (code) => {
       setLoader(true);
@@ -52,7 +54,8 @@ export default function Validate() {
 
         if (res.status === 200) {
           setLoader(false);
-          localStorage.setItem("user", JSON.stringify(res.data.details));
+          const userData = res.data.details;
+          localStorage.setItem("user", JSON.stringify(userData));
           localStorage.setItem("addresstype", "corporate");
 
           if (capturedReferralCode) {
@@ -60,10 +63,17 @@ export default function Validate() {
             console.log("Referral code used and cleared.");
           }
 
-          setTimeout(() => {
-            window.location.replace("/home");
-          }, 50);
+          // ✅ Redirect logic based on address availability
+          const hasAddresses =
+            Array.isArray(userData.addresses) && userData.addresses.length > 0;
 
+          setTimeout(() => {
+            if (hasAddresses) {
+              window.location.replace("/home");
+            } else {
+              window.location.replace("/current-location");
+            }
+          }, 100);
           Swal2.fire({
             toast: true,
             position: "bottom",

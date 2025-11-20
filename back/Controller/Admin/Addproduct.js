@@ -2,10 +2,12 @@ const path = require("path");
 const AddRestaurants = require("../../Model/Admin/Addproduct");
 const { uploadFile2 } = require("../../Midleware/AWS");
 class AddRestaurantdata {
-  async addFoodItem(req, res) {
+   async addFoodItem(req, res) {
     const {
       foodname,
       foodcategory,
+      categoryName,
+      menuCategory,
       fooddescription,
       foodprice,
       foodmealtype,
@@ -18,6 +20,7 @@ class AddRestaurantdata {
       discount,
       offerprice,
       totalprice,
+      aggregatedPrice,
       unit,
       quantity,
       loaddate,
@@ -54,6 +57,8 @@ class AddRestaurantdata {
       const foodItem = new AddRestaurants({
         foodname,
         foodcategory,
+        categoryName,
+        menuCategory,
         fooddescription,
         foodprice,
         foodmealtype,
@@ -66,6 +71,7 @@ class AddRestaurantdata {
         discount,
         offerprice,
         totalprice,
+        aggregatedPrice,
         unit,
         quantity,
         loaddate,
@@ -95,6 +101,8 @@ class AddRestaurantdata {
       const {
         foodname,
         foodcategory,
+        categoryName,
+        menuCategory,
         fooddescription,
         foodprice,
         foodmealtype,
@@ -107,6 +115,7 @@ class AddRestaurantdata {
         discount,
         offerprice,
         totalprice,
+        aggregatedPrice,
         unit,
         quantity,
         loaddate,
@@ -149,14 +158,18 @@ class AddRestaurantdata {
       // Dynamically add fields to the update object if they are provided
       if (foodname) obj["foodname"] = foodname;
       if (foodcategory) obj["foodcategory"] = foodcategory;
+      if (categoryName) obj["categoryName"] = categoryName;
+      if (menuCategory) obj["menuCategory"] = menuCategory;
       if (fooddescription) obj["fooddescription"] = fooddescription;
       if (foodprice) obj["foodprice"] = foodprice;
+      // if (aggregatedPrice) obj["aggregatedPrice"] = aggregatedPrice;
       if (foodmealtype) obj["foodmealtype"] = foodmealtype;
       if (typeof recommended !== "undefined") obj["recommended"] = recommended;
       if (typeof approved !== "undefined") obj["approved"] = approved;
       if (typeof blocked !== "undefined") obj["blocked"] = blocked;
       // if (totalstock !== undefined) obj["totalstock"] = totalstock;
       // if (Remainingstock !== undefined) obj["Remainingstock"] = Remainingstock;
+      if (aggregatedPrice !== undefined) obj["aggregatedPrice"] = aggregatedPrice;
       if (gst !== undefined) obj["gst"] = gst;
       if (discount !== undefined) obj["discount"] = discount;
       if (offerprice !== undefined) obj["offerprice"] = offerprice;

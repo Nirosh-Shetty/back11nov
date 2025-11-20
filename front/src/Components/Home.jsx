@@ -41,10 +41,14 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
   const addresstype = localStorage.getItem("addresstype");
 
+  // const address = JSON.parse(
+  //   localStorage.getItem(
+  //     addresstype === "apartment" ? "address" : "coporateaddress"
+  //   )
+  // );
   const address = JSON.parse(
-    localStorage.getItem(
-      addresstype === "apartment" ? "address" : "coporateaddress"
-    )
+    localStorage.getItem("currentLocation") ??
+      localStorage.getItem("primaryAddress")
   );
 
   const getNormalizedToday = () => {
@@ -58,7 +62,7 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
   const [allHubMenuData, setAllHubMenuData] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
   // const [isMultiCartOpen, setIsMultiCartOpen] = useState(false);
-  console.log("menuItems", menuItems);
+  // console.log("menuItems", menuItems);
   const handleSelectionChange = (date1, session1) => {
     console.log("Selection changed:", date1, session1);
     setSelectedDate(date1);
@@ -1209,8 +1213,17 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
       const shouldRemove = (item) => {
         if (!item) return false;
         // support multiple possible property names for date/session
-        const dateVal = item.deliveryDate || item.date || item.slotDate || item.deliveryDateString;
-        const sessionVal = (item.session || item.slotSession || item.mealSession || "").toString();
+        const dateVal =
+          item.deliveryDate ||
+          item.date ||
+          item.slotDate ||
+          item.deliveryDateString;
+        const sessionVal = (
+          item.session ||
+          item.slotSession ||
+          item.mealSession ||
+          ""
+        ).toString();
         if (!dateVal || !sessionVal) return false;
         const itemKey = toKey(dateVal);
         if (itemKey !== todayKey) return false;
@@ -1261,7 +1274,9 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
 
     readCart();
     const intervalId = setInterval(readCart, 1000); // same-tab updates
-    const onStorage = (e) => { if (e.key === "cart") readCart(); }; // other tabs
+    const onStorage = (e) => {
+      if (e.key === "cart") readCart();
+    }; // other tabs
     const onCartUpdated = () => readCart(); // custom event from Checkout
     window.addEventListener("storage", onStorage);
     window.addEventListener("cart_updated", onCartUpdated);
@@ -1273,16 +1288,14 @@ const Home = ({ selectArea, setSelectArea, Carts, setCarts }) => {
     };
   }, [setCarts]);
 
-
-
   return (
     <div>
       <ToastContainer />
 
       <div>
         <Banner
-          selectArea={selectArea}
-          setSelectArea={setSelectArea}
+          // selectArea={selectArea}
+          // setSelectArea={setSelectArea}
           Carts={Carts}
           getAllOffer={getAllOffer}
         />

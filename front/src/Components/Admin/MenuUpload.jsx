@@ -4,7 +4,7 @@ import "../../Styles/MenuUpload.css"; // Your CSS file
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-import axios from "axios"; 
+import axios from "axios";
 
 // 2. Define ALL your API URLs
 const SAVE_API_URL = "http://localhost:7013/api/admin/hub-menu"; // This is for SAVING (from our plan)
@@ -18,7 +18,7 @@ const MenuUpload = () => {
   const [menuDate, setMenuDate] = useState("");
   const [session, setSession] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   const [masterProducts, setMasterProducts] = useState([]); // Will hold products from API
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [allHubs, setAllHubs] = useState([]); // Will hold hubs from API
@@ -48,9 +48,9 @@ const MenuUpload = () => {
         } else {
           toast.error("Could not parse products. Check API.");
         }
-        
+
         // Use the response structure you provided: response.data (which is an array)
-        if (hubsRes.data && Array.isArray(hubsRes.data)) { 
+        if (hubsRes.data && Array.isArray(hubsRes.data)) {
           setAllHubs(hubsRes.data);
         } else {
           toast.error("Could not parse hubs. Check API.");
@@ -143,7 +143,7 @@ const MenuUpload = () => {
     }
 
     setLoading(true);
-    
+
     const payload = {
       menuDate: menuDate,
       session: session,
@@ -164,7 +164,9 @@ const MenuUpload = () => {
       console.error("Error saving assignments:", err);
       toast.error(
         // 8. FIX: Use 'foodname' in toast
-        `Failed to save ${currentProduct.foodname}: ${err.response?.data?.error || err.message}`
+        `Failed to save ${currentProduct.foodname}: ${
+          err.response?.data?.error || err.message
+        }`
       );
       setLoading(false);
       return false; // Signal failure
@@ -209,7 +211,7 @@ const MenuUpload = () => {
       setCurrentProductIndex(currentProductIndex + 1);
     }
   };
-  
+
   // This handles the "Add all" button
   const handleSaveAllClick = async () => {
     const success = await handleSaveProductAssignments();
@@ -217,7 +219,7 @@ const MenuUpload = () => {
       // Navigate to hub management as requested
       toast.info("All menus saved! Navigating to Hub Management...");
       // 9. FIX: This must match your router path in Main.jsx
-      navigate("/hub-product-mangement"); 
+      navigate("/hub-product-mangement");
     }
   };
 
@@ -245,9 +247,9 @@ const MenuUpload = () => {
 
   const currentProduct = addedProducts[currentProductIndex];
   const currentAssignments = assignments[currentProduct?._id] || {};
-  
+
   // === RENDER ===
-  
+
   if (pageLoading) {
     return (
       <Box sx={{ p: 3 }}>
@@ -308,7 +310,7 @@ const MenuUpload = () => {
                       className={isDisabled ? "row-disabled" : ""}
                     >
                       {/* Use 'hubName' from your API response */}
-                      <td>{hub.hubName}</td> 
+                      <td>{hub.hubName}</td>
                       <td>
                         <input
                           type="number"
@@ -455,7 +457,8 @@ const MenuUpload = () => {
                   <img
                     // 12. FIX: Use your 'Foodgallery' field
                     src={
-                      product.Foodgallery[0]?.image2 || "/Assets/logo-container.svg"
+                      product.Foodgallery[0]?.image2 ||
+                      "/Assets/logo-container.svg"
                     }
                     alt={product.foodname}
                   />

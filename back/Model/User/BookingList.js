@@ -152,4 +152,4 @@ const customerorderSchema = new mongoose.Schema(
 );
 
 const customerorderModel = mongoose.model("OrderList", customerorderSchema);
-module.exports = customerorderModel; 
+module.exports = customerorderModel;

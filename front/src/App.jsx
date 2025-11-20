@@ -64,6 +64,7 @@ import PackerDashboard from "./Components/Packer/PackerDashboard";
 import PackerLogin from "./Components/Packer/PackerLogin";
 import PackerList from "./Components/Packer/PackerList";
 import HubList from "./Components/Packer/HubList";
+import ZoneMap from "./Components/Admin/ZoneMap";
 import MultipleInvoice from "./Components/Packer/MultipleInvoice";
 import Bag from "./Components/Admin/Bag";
 import DelayReason from "./Components/Admin/Dailyreason";
@@ -78,6 +79,11 @@ import AdminCategory from "./Components/Admin/AdminCategory";
 import PackerOrdersEnhanced from "./Components/Packer/Packers";
 import Location from "./Components/Location";
 import MenuUpload from "./Components/Admin/MenuUpload"
+import AddressManagement from "./Components/AddressManagement";
+import LocationRequest from "./Components/Admin/LocationRequest";
+import LocationConfirmationSimple from "./Components/CurrentLocation";
+import AdminOrderAssignment from "./Components/Admin/AdminOrderAssignment";
+
 
 
 
@@ -154,7 +160,7 @@ function App() {
         <Routes>
           {/* <Route path="/" element={<LandingPage />} /> */}
           <Route path="/" element={<LeafWithLogo />} />
-          <Route path="/:referralCode" element={<LeafWithLogo />} />
+           <Route path="/:referralCode" element={<LeafWithLogo />} />
           <Route path="/otp-varification" element={<Validate />} />
           <Route
             path="/home"
@@ -184,6 +190,20 @@ function App() {
                   setCarts={setCarts}
                 /> */}
                 <UserWallet />
+                <Footer />
+              </>
+            }
+          />
+              <Route
+            path="/addresses"
+            element={
+              <>
+                {/* <Navbar1
+                  selectArea={selectArea}
+                  Carts={Carts}
+                  setCarts={setCarts}
+                /> */}
+                <AddressManagement />
                 <Footer />
               </>
             }
@@ -251,6 +271,7 @@ function App() {
               </>
             }
           />
+
           <Route
             path="/thermalinvoice"
             element={
@@ -316,7 +337,7 @@ function App() {
             path="admin/referral-dashboard"
             element={<Main children={<AdminReferralDashboard />} />}
           />
-           <Route
+            <Route
             path="admin/menu-upload"
             element={<Main children={<MenuUpload />} />}
           />
@@ -374,7 +395,7 @@ function App() {
             path="/corporate-booking-list"
             element={<Main children={<CorporateBookings />} />}
           />
-          <Route
+           <Route
             path="/corporate-booking-list-old"
             element={<Main children={<CorporateBookingsOld />} />}
           />
@@ -415,9 +436,17 @@ function App() {
             path="/location-add-request"
             element={<Main children={<LocationAddRequest />} />}
           />
+           <Route
+            path="/location-request"
+            element={<Main children={<LocationRequest />} />}
+          />
           <Route
             path="/admin/hub-list"
             element={<Main children={<HubList />} />}
+          />
+          <Route
+            path="/admin/zone-map"
+            element={<Main children={<ZoneMap />} />}
           />
           <Route
             path="/admin/packer-track"
@@ -446,6 +475,8 @@ function App() {
             element={<div>Profile Page (Placeholder)</div>}
           />
           <Route path="/location" element={<Location />} />
+          <Route path="/current-location" element={<LocationConfirmationSimple />} />
+          <Route path="/order-assignment" element={<AdminOrderAssignment />} />
 
 
           {/* Packer Routes */}

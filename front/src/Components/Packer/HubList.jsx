@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import moment from "moment";
@@ -16,12 +16,14 @@ import {
   Col,
 } from "react-bootstrap";
 import "./HubList.css";
+import AreaSelector from "../Map/AreaSelector";
 
 const HubList = () => {
   // Modal states
   const [showAddHub, setShowAddHub] = useState(false);
   const [showEditHub, setShowEditHub] = useState(false);
   const [showDeleteHub, setShowDeleteHub] = useState(false);
+  const [showViewAllPolygons, setShowViewAllPolygons] = useState(false);
 
   // Hub data states
   const [hubs, setHubs] = useState([]);
@@ -30,11 +32,16 @@ const HubList = () => {
   const [loading, setLoading] = useState(false);
 
   // Add/Edit/Delete hub states
-  const [newHub, setNewHub] = useState({ hubName: "", locations: [] });
+  const [newHub, setNewHub] = useState({
+    hubName: "",
+    locations: [],
+    geometry: null,
+  });
   const [editHub, setEditHub] = useState({
     hubId: "",
     hubName: "",
     locations: [],
+    geometry: null,
   });
   const [selectedHub, setSelectedHub] = useState(null);
   const [addHubLoading, setAddHubLoading] = useState(false);
@@ -59,7 +66,7 @@ const HubList = () => {
   const token = localStorage.getItem("authToken");
 
   // Fetch corporate locations
-  const getCorporateLocations = async () => {
+  const getCorporateLocations = useCallback(async () => {
     try {
       const res = await axios.get(
         "http://localhost:7013/api/admin/getcorporate",
@@ -74,10 +81,10 @@ const HubList = () => {
       console.error("Error fetching corporate locations:", error);
       showToast("Failed to fetch corporate locations.", "error");
     }
-  };
+  }, [token]);
 
   // Fetch apartment locations
-  const getApartmentLocations = async () => {
+  const getApartmentLocations = useCallback(async () => {
     try {
       const res = await axios.get(
         "http://localhost:7013/api/admin/getapartment",
@@ -92,7 +99,7 @@ const HubList = () => {
       console.error("Error fetching apartment locations:", error);
       showToast("Failed to fetch apartment locations.", "error");
     }
-  };
+  }, [token]);
 
   // Combine all locations
   useEffect(() => {
@@ -114,19 +121,17 @@ const HubList = () => {
   // Show toast notification
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
+    alert(message);
     setTimeout(() => setToast({ show: false, message: "", type: "" }), 3000);
   };
 
   // Fetch hubs
-  const getHubs = async () => {
+  const getHubs = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        "http://localhost:7013/api/Hub/hubs",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await axios.get("http://localhost:7013/api/Hub/hubs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setHubs(res.data);
       setNoChangeData(res.data);
     } catch (error) {
@@ -137,7 +142,7 @@ const HubList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   // Add Hub
   const handleAddHub = async () => {
@@ -145,21 +150,29 @@ const HubList = () => {
       showToast("Hub name is required.", "error");
       return;
     }
-    if (!newHub.locations.length) {
-      showToast("At least one location is required.", "error");
+    // if (!newHub.locations.length) {
+    //   showToast("At least one location is required.", "error");
+    //   return;
+    // }
+    if (!newHub.geometry) {
+      showToast("Please draw a service area polygon on the map.", "error");
       return;
     }
     setAddHubLoading(true);
     try {
       const res = await axios.post(
         "http://localhost:7013/api/Hub/hubs",
-        { hubName: newHub.hubName.trim(), locations: newHub.locations },
+        {
+          hubName: newHub.hubName.trim(),
+          locations: newHub.locations,
+          geometry: newHub.geometry,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.status === 201) {
         showToast("Hub added successfully");
         setShowAddHub(false);
-        setNewHub({ hubName: "", locations: [] });
+        setNewHub({ hubName: "", locations: [], geometry: null });
         getHubs();
       }
     } catch (error) {
@@ -178,15 +191,22 @@ const HubList = () => {
       showToast("Hub name is required.", "error");
       return;
     }
-    if (!editHub.locations.length) {
-      showToast("At least one location is required.", "error");
-      return;
-    }
+    // if (!editHub.locations.length) {
+    //   showToast("At least one location is required.", "error");
+    //   return;
+    // }
     setEditHubLoading(true);
     try {
+      const payload = {
+        hubName: editHub.hubName.trim(),
+        locations: editHub.locations,
+      };
+      if (editHub.geometry) {
+        payload.geometry = editHub.geometry;
+      }
       const res = await axios.put(
         `http://localhost:7013/api/Hub/hubs/${editHub.hubId}`,
-        { hubName: editHub.hubName.trim(), locations: editHub.locations },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (res.status === 200) {
@@ -269,7 +289,8 @@ const HubList = () => {
       XLSX.utils.book_append_sheet(workbook, worksheet, "Hub List");
       XLSX.writeFile(workbook, `HubList_${moment().format("YYYYMMDD")}.xlsx`);
       showToast("Exported to Excel successfully");
-    } catch (error) {
+    } catch (e) {
+      console.error(e);
       showToast("Failed to export to Excel.", "error");
     } finally {
       setLoading(false);
@@ -284,7 +305,8 @@ const HubList = () => {
     getHubs();
     getCorporateLocations();
     getApartmentLocations();
-  }, []);
+    // These functions are memoized, so this runs once per token change
+  }, [getHubs, getCorporateLocations, getApartmentLocations]);
 
   // Get location type badge
   const getLocationBadge = (location) => {
@@ -427,6 +449,14 @@ const HubList = () => {
               <div className="d-flex gap-2">
                 <Button
                   variant="outline-light"
+                  onClick={() => setShowViewAllPolygons(true)}
+                  disabled={loading}
+                  className="d-flex align-items-center"
+                >
+                  🗺️ View All Polygons
+                </Button>
+                <Button
+                  variant="outline-light"
                   onClick={handleExportExcel}
                   disabled={loading}
                   className="d-flex align-items-center"
@@ -527,6 +557,7 @@ const HubList = () => {
                                   hubId: hub.hubId,
                                   hubName: hub.hubName,
                                   locations: hub.locations || [],
+                                  geometry: hub.geometry || null,
                                 });
                                 setShowEditHub(true);
                               }}
@@ -593,15 +624,21 @@ const HubList = () => {
       </Card>
 
       {/* Add Hub Modal */}
-      <Modal show={showAddHub} onHide={() => setShowAddHub(false)}>
+      <Modal
+        show={showAddHub}
+        onHide={() => setShowAddHub(false)}
+        size="lg"
+        fullscreen
+        style={{ zIndex: 99999 }}
+      >
         <Modal.Header
           closeButton
           className="text-white"
           style={{ background: "#fe4500" }}
         >
-          <Modal.Title>Add New Hub</Modal.Title>
+          <Modal.Title className="text-white">Add New Hub</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ maxHeight: "80vh", overflowY: "auto" }}>
           <Form>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold">Hub Name</Form.Label>
@@ -633,6 +670,24 @@ const HubList = () => {
                 </Form.Text>
               )}
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-bold">
+                Service Area (Polygon)
+              </Form.Label>
+              <div className="border rounded overflow-hidden">
+                <AreaSelector
+                  apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
+                  value={newHub.geometry}
+                  onGeoJSONChange={(feature) =>
+                    setNewHub({ ...newHub, geometry: feature })
+                  }
+                  editable={!addHubLoading}
+                />
+              </div>
+              <Form.Text muted>
+                Draw the hub's service area. This will be saved with the hub.
+              </Form.Text>
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -661,7 +716,13 @@ const HubList = () => {
       </Modal>
 
       {/* Edit Hub Modal */}
-      <Modal show={showEditHub} onHide={() => setShowEditHub(false)}>
+      <Modal
+        show={showEditHub}
+        onHide={() => setShowEditHub(false)}
+        size="lg"
+        fullscreen
+        style={{ zIndex: 99999 }}
+      >
         <Modal.Header
           closeButton
           className="text-white"
@@ -669,7 +730,7 @@ const HubList = () => {
         >
           <Modal.Title>Edit Hub</Modal.Title>
         </Modal.Header>
-        <Modal.Body>
+        <Modal.Body style={{ maxHeight: "80vh", overflowY: "auto" }}>
           <Form>
             <Form.Group className="mb-4">
               <Form.Label className="fw-bold">Hub Name</Form.Label>
@@ -700,6 +761,25 @@ const HubList = () => {
                   No locations available. Please add locations first.
                 </Form.Text>
               )}
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label className="fw-bold">
+                Service Area (Polygon)
+              </Form.Label>
+              <div className="border rounded overflow-hidden">
+                <AreaSelector
+                  apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
+                  value={editHub.geometry}
+                  onGeoJSONChange={(feature) =>
+                    setEditHub({ ...editHub, geometry: feature })
+                  }
+                  editable={!editHubLoading}
+                />
+              </div>
+              <Form.Text muted>
+                Draw or update the hub's service area. Leave unchanged to keep
+                existing polygon.
+              </Form.Text>
             </Form.Group>
           </Form>
         </Modal.Body>
@@ -773,6 +853,46 @@ const HubList = () => {
             ) : (
               "Delete Hub"
             )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* View All Polygons Modal */}
+      <Modal
+        show={showViewAllPolygons}
+        onHide={() => setShowViewAllPolygons(false)}
+        size="xl"
+        fullscreen
+        style={{ zIndex: 99999 }}
+      >
+        <Modal.Header
+          closeButton
+          className="text-white"
+          style={{ background: "#fe4500" }}
+        >
+          <Modal.Title>All Hub Service Areas</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ height: "85vh", padding: 0 }}>
+          <AreaSelector
+            apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY || ""}
+            value={null}
+            allPolygons={hubs
+              .filter((hub) => hub.geometry)
+              .map((hub) => ({
+                geometry: hub.geometry,
+                hubName: hub.hubName,
+                hubId: hub.hubId,
+              }))}
+            editable={false}
+            viewOnly={true}
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowViewAllPolygons(false)}
+          >
+            Close
           </Button>
         </Modal.Footer>
       </Modal>

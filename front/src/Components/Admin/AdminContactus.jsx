@@ -77,9 +77,7 @@ const AdminContactus = () => {
   const [Addcontactus, setAddcontactus] = useState([]);
   const getAddcontactus = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getcontactus"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getcontactus");
       if (res.status === 200) {
         setAddcontactus(res.data.getcontactus);
       }
@@ -194,9 +192,7 @@ const AdminContactus = () => {
   const [Addsocial, setAddsocial] = useState([]);
   const getAddsocial = async () => {
     try {
-      let res = await axios.get(
-        "http://localhost:7013/api/admin/getsocial"
-      );
+      let res = await axios.get("http://localhost:7013/api/admin/getsocial");
       if (res.status === 200) {
         setAddsocial(res.data.getsocial);
       }

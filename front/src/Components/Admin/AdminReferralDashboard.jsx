@@ -17,6 +17,7 @@ import {
   Modal,
   CircularProgress,
 } from "@mui/material";
+// ++ Added MonetizationOn icon ++
 import {
   PeopleAlt,
   Star,

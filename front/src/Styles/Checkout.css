@@ -969,7 +969,7 @@ justify-content: space-between; */
   background-color: var(--app-foreground);
   border-radius: 16px;
   padding: 16px;
-  margin: 16px 0 16px 0;
+  margin-bottom: 16px;
   border: 0.4px solid var(--copper-accents,#B87333);
   box-shadow: 0 1px 4px 0 rgba(0, 0, 0, 0.1);
   display: flex;
@@ -1055,30 +1055,22 @@ justify-content: space-between; */
 .change-button {
   align-self: flex-start;
   display: flex;
-  gap: 3px;
+  gap: 4px;
   align-items: center;
-  justify-content: center;
-  padding: 5px 33px;
   background: var(--cream-walls, #FFF8DC);
   border-radius: 8px;
-  border: 1px solid var(--steel-light);
-  width: 64px;
-  height: 16px; 
-}
-.change-icon{
-  position: relative;
-  top: -2px;
+  border: 1px solid var(--steel_light);
 }
 .change-text {
   /* color: var(--secondary-text, #6b6b6b); */
-  color: var(--Primary-Text);
+  color: var(--Primary-Text, #2c2c2c);
   font-family: Inter;
   font-size: 11px;
   font-style: normal;
   font-weight: 700;
-  line-height: 10px;
+  line-height: 11px;
   /* 110% */
-  letter-spacing: -0.6px;
+  letter-spacing: -5%;
 }
 
 .delivery-change-btn {
@@ -1109,7 +1101,6 @@ justify-content: space-between; */
   margin-left: auto;
   flex-shrink: 0; /* Prevents wrapping */
   padding-left: 8px;
-  border: none;
 }
 .delivery-how-link{
   /* font-weight: 500; */
@@ -1158,10 +1149,6 @@ justify-content: space-between; */
   border-bottom: 1px dashed var(--steel-light);
   margin: 4px 0;
 }
-
-
-
-/* --- NEW STYLES FOR CHECKOUT SLOTS --- */
 
 .checkout-date-scroller {
   display: flex;

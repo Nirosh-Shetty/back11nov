@@ -45,7 +45,7 @@ export default function LeafWithLogo() {
       localStorage.setItem("referralCode", referralCode);
       console.log("Referral code captured:", referralCode);
     }
-  }, [location]);
+  }, []);
   const headerVariants = {
     hidden: { y: -100 },
     visible: {
