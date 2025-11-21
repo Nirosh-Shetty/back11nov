@@ -78,7 +78,7 @@ const CategoryRoutes = require('./Routes/Admin/AdminCategory')
 const PackingRoutes = require('./Routes/Packer/Packing')
 const serviceRequestRoutes = require('./Routes/User/serviceRequestRoutes')
 const RiderRoutes = require('./Routes/Admin/Rider')
-
+const myPlanRoutes = require("./Routes/User/MyPlanRoute");
 
 const hubMenuRoutes = require("./Routes/Admin/HubMenu");
 const MenuCategoryRoutes = require("./Routes/Admin/MenuCategory");
@@ -115,7 +115,6 @@ app.use('/api/admin/menuCategory', MenuCategoryRoutes)
 app.use('/api/admin/', FoodTagsRoutes);
 
 
-
 //User
 app.use("/api/user", paymentRoute);
 app.use("/api/User", GeneralEnquiry);
@@ -127,9 +126,8 @@ app.use("/api/cart", Addcart);
 app.use("/api/wallet", Wallet);
 app.use("/api/packer", PackerRoutes);
 app.use("/api/packer/packing", PackingRoutes);
-
 app.use('/api/service-requests', serviceRequestRoutes);
-
+app.use("/api/user/plan", myPlanRoutes);
 
 
 app.use('/flyer', (req, res) => {

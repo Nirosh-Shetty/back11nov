@@ -27,10 +27,8 @@ const hubMenuSchema = new mongoose.Schema(
       type: Number, // The product's default price
       required: true,
     },
-    hubPrice: {
-      type: Number, // The specific price for this hub ("Hub Pricing")
-      required: true,
-    },
+    hubPrice: { type: Number, required: true }, // For "Instant" (Today) orders
+    reservedPrice: { type: Number, required: true }, // For "Future" (Reserved) orders - Discounted
     reservationPrice: {
       type: Number,
       required: true,
